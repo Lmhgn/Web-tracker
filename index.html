@@ -17,6 +17,9 @@
       --green:        #16a34a;
       --green-light:  #f0fdf4;
       --green-border: #86efac;
+      --blue:         #2563eb;
+      --blue-light:   #eff6ff;
+      --blue-border:  #93c5fd;
       --gray:         #6b7280;
       --gray-light:   #f9fafb;
       --gray-border:  #e5e7eb;
@@ -102,8 +105,14 @@
     .banner.error    { background: #fef2f2; border-bottom: 1px solid var(--red-border); color: var(--red); }
     .hidden { display: none !important; }
 
-    /* ── Filter Bar ── */
-    .filters { display: flex; gap: 0.45rem; padding: 1rem 1.75rem 0; flex-wrap: wrap; }
+    /* ── Controls Bar (filters + search + view tabs) ── */
+    .controls {
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 0.75rem 1.75rem;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .filt-group { display: flex; gap: 0.45rem; flex-wrap: wrap; flex: 1; }
     .filt {
       padding: 0.3rem 0.85rem; border-radius: 20px; border: 1.5px solid var(--border);
       background: var(--surface); font-size: 0.78rem; font-weight: 600;
@@ -112,7 +121,27 @@
     .filt:hover { border-color: #94a3b8; color: var(--text); }
     .filt.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
-    /* ── Grid ── */
+    .search-wrap { position: relative; min-width: 180px; max-width: 260px; }
+    .search-wrap svg { position: absolute; left: 0.6rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .search-input {
+      width: 100%; padding: 0.32rem 0.75rem 0.32rem 2rem;
+      border: 1.5px solid var(--border); border-radius: 20px;
+      font-size: 0.8rem; outline: none; transition: border-color .15s;
+      background: var(--bg); color: var(--text);
+    }
+    .search-input:focus { border-color: #3b82f6; background: #fff; }
+
+    .view-tabs { display: flex; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+    .view-tab {
+      padding: 0.28rem 0.85rem; font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; border: none; background: none; color: var(--text-muted);
+      transition: all .15s;
+    }
+    .view-tab:hover { color: var(--text); background: var(--bg); }
+    .view-tab.active { background: var(--navy); color: #fff; }
+    .view-tab + .view-tab { border-left: 1.5px solid var(--border); }
+
+    /* ── Grid (card view) ── */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -139,6 +168,15 @@
       text-decoration: none; line-height: 1.3;
     }
     .card-head a:hover { text-decoration: underline; color: #2563eb; }
+    .card-head-right { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
+
+    .card-refresh-btn {
+      width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg); cursor: pointer; display: flex; align-items: center;
+      justify-content: center; color: var(--text-muted); transition: all .15s; flex-shrink: 0;
+    }
+    .card-refresh-btn:hover { background: #e2e8f0; color: var(--text); }
+    .card-refresh-btn:disabled { opacity: .4; cursor: not-allowed; }
 
     .badge {
       flex-shrink: 0; font-size: 0.65rem; font-weight: 700;
@@ -150,6 +188,7 @@
     .badge.ok            { background: var(--green-light);  color: var(--green);  border: 1px solid var(--green-border); }
     .badge.error         { background: var(--gray-light);   color: var(--gray);   border: 1px solid var(--gray-border); }
     .badge.loading       { background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; }
+    .badge.unknown       { background: var(--gray-light);   color: var(--gray);   border: 1px solid var(--gray-border); }
 
     .tiles { padding: 0 1rem 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
 
@@ -161,17 +200,22 @@
     .tile.outdated      { background: var(--red-light);    border-color: var(--red-border); }
     .tile.expiring_soon { background: var(--orange-light); border-color: var(--orange-border); }
     .tile.ok            { background: var(--green-light);  border-color: var(--green-border); }
+    .tile.is-new        { background: var(--blue-light);   border-color: var(--blue-border); }
+    .tile.removed       { background: #f8fafc; border-color: var(--border); opacity: 0.6; }
 
     .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--gray); }
     .tile.outdated      .dot { background: var(--red); }
     .tile.expiring_soon .dot { background: var(--orange); }
     .tile.ok            .dot { background: var(--green); }
+    .tile.is-new        .dot { background: var(--blue); }
+    .tile.removed       .dot { background: #9ca3af; }
 
     .tile-info { flex: 1; min-width: 0; }
     .tile-artist { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .tile-date   { font-size: 0.7rem;  color: var(--text-muted); margin-top: 1px; }
     .tile.outdated      .tile-date { color: var(--red);    font-weight: 600; }
     .tile.expiring_soon .tile-date { color: var(--orange); font-weight: 600; }
+    .removed-artist { text-decoration: line-through; color: var(--text-muted) !important; }
 
     .tile-tag {
       font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
@@ -179,11 +223,20 @@
     }
     .tile.outdated      .tile-tag { background: var(--red);    color: #fff; }
     .tile.expiring_soon .tile-tag { background: var(--orange); color: #fff; }
+    .new-tag   { background: var(--blue)  !important; color: #fff !important; }
+    .removed-tag { background: #9ca3af   !important; color: #fff !important; }
 
     .card-foot {
       padding: 0.45rem 1rem 0.7rem; border-top: 1px solid var(--border);
       font-size: 0.7rem; color: var(--text-muted);
+      display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem;
     }
+    .changes-note {
+      font-size: 0.67rem; font-weight: 700; padding: 0.1rem 0.4rem;
+      border-radius: 4px; background: var(--blue-light); color: var(--blue); margin-left: 0.15rem;
+    }
+    .scan-age { transition: color .3s; }
+
     .card-err { font-size: 0.75rem; color: var(--gray); padding: 0.5rem 1rem 0.9rem; }
 
     /* skeleton tiles while loading */
@@ -211,6 +264,41 @@
     .spin.lg   { width: 32px; height: 32px; border-width: 3.5px; }
     @keyframes rot { to { transform: rotate(360deg); } }
 
+    /* ── Events Table View ── */
+    #event-list { padding: 1.1rem 1.75rem 2rem; flex: 1; overflow-x: auto; }
+    .ev-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .ev-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--text-muted);
+      padding: 0.7rem 0.9rem; border-bottom: 2px solid var(--border);
+      background: var(--gray-light);
+    }
+    .ev-row { border-bottom: 1px solid var(--border); transition: background .1s; }
+    .ev-row:last-child { border-bottom: none; }
+    .ev-row:hover { background: #f8fafc; }
+    .ev-row td { padding: 0.55rem 0.9rem; vertical-align: middle; }
+    .ev-row.outdated      td:first-child { border-left: 3px solid var(--red); }
+    .ev-row.expiring_soon td:first-child { border-left: 3px solid var(--orange); }
+    .ev-row.ok            td:first-child { border-left: 3px solid var(--green); }
+    .ev-row.is-new        td:first-child { border-left: 3px solid var(--blue); }
+    .ev-date { font-weight: 500; white-space: nowrap; }
+    .ev-rel {
+      font-size: 0.67rem; font-weight: 700; margin-left: 0.4rem;
+      padding: 0.08rem 0.35rem; border-radius: 4px;
+      background: var(--gray-light); color: var(--text-muted); white-space: nowrap;
+    }
+    .ev-row.outdated      .ev-rel { background: var(--red-light);    color: var(--red); }
+    .ev-row.expiring_soon .ev-rel { background: var(--orange-light); color: var(--orange); }
+    .ev-artist { font-weight: 600; }
+    .ev-venue a { color: var(--blue); text-decoration: none; font-size: 0.78rem; }
+    .ev-venue a:hover { text-decoration: underline; }
+    .new-badge {
+      font-size: 0.6rem; font-weight: 700; padding: 0.08rem 0.32rem;
+      border-radius: 3px; background: var(--blue); color: #fff;
+      margin-left: 0.4rem; vertical-align: middle;
+    }
+    #event-list .placeholder { grid-column: unset; }
+
     /* ── Settings Modal ── */
     .overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.5);
@@ -221,18 +309,21 @@
       background: var(--surface); border-radius: var(--radius);
       padding: 1.75rem; max-width: 540px; width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      max-height: 90vh; overflow-y: auto;
     }
     .modal h2 { font-size: 1.1rem; margin-bottom: 0.4rem; }
     .modal-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5; }
 
     .field { margin-bottom: 1rem; }
     .field label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; }
-    .field input {
-      width: 100%; padding: 0.5rem 0.75rem; border: 1.5px solid var(--border);
+    .field input, .field select {
+      padding: 0.5rem 0.75rem; border: 1.5px solid var(--border);
       border-radius: 8px; font-size: 0.85rem; color: var(--text);
-      outline: none; transition: border-color .15s;
+      outline: none; transition: border-color .15s; background: var(--surface);
     }
-    .field input:focus { border-color: #3b82f6; }
+    .field input { width: 100%; }
+    .field select { cursor: pointer; }
+    .field input:focus, .field select:focus { border-color: #3b82f6; }
     .field .hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem; }
 
     .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.25rem; }
@@ -247,7 +338,7 @@
     .footer {
       padding: 0.65rem 1.75rem; border-top: 1px solid var(--border);
       background: var(--surface); display: flex; align-items: center;
-      gap: 0.65rem; font-size: 0.75rem; color: var(--text-muted);
+      gap: 0.65rem; font-size: 0.75rem; color: var(--text-muted); flex-wrap: wrap;
     }
     .footer button { background: none; border: none; color: #3b82f6; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
     .footer button:hover { color: #2563eb; }
@@ -261,9 +352,11 @@
     @media (max-width: 580px) {
       .header { padding: 0.9rem 1rem; }
       .summary { padding: 0.75rem 1rem; }
-      .filters { padding: 0.75rem 1rem 0; }
+      .controls { padding: 0.65rem 1rem; }
       .grid    { padding: 1rem; grid-template-columns: 1fr; }
+      #event-list { padding: 1rem; }
       .header-right { width: 100%; justify-content: flex-end; }
+      .search-wrap { max-width: 100%; width: 100%; }
     }
   </style>
 </head>
@@ -273,7 +366,7 @@
 <header class="header">
   <div>
     <h1>Venue Carousel Tracker</h1>
-    <p class="header-sub">Homepage tile monitor · 20 venues · auto-refreshes hourly</p>
+    <p class="header-sub" id="header-sub">Homepage tile monitor · 20 venues</p>
   </div>
   <div class="header-right">
     <div class="last-checked">
@@ -283,6 +376,10 @@
     <button class="btn btn-blue" id="refresh-btn" onclick="startScrape()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       Refresh
+    </button>
+    <button class="btn btn-ghost" onclick="exportCSV()" title="Download all events as CSV">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
     </button>
     <button class="btn btn-ghost" id="notif-btn" onclick="toggleNotifications()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -300,6 +397,7 @@
   <div class="stat red">    <span class="stat-n" id="n-out">—</span><span class="stat-l">Outdated</span></div>
   <div class="stat orange"><span class="stat-n" id="n-exp">—</span><span class="stat-l">Expiring Soon</span></div>
   <div class="stat green"> <span class="stat-n" id="n-ok">—</span> <span class="stat-l">Up to Date</span></div>
+  <div class="stat neutral"><span class="stat-n" id="n-ev">—</span> <span class="stat-l">Total Events</span></div>
   <div class="stat neutral"><span class="stat-n" id="n-tot">—</span><span class="stat-l">Venues</span></div>
 </div>
 
@@ -314,33 +412,64 @@
 </div>
 <p class="proxy-note">Pages are fetched via public CORS proxies (corsproxy.io → allorigins → codetabs). Each venue tries all three in order — errors mean all proxies failed for that site. Try <strong>Refresh</strong> or add a custom proxy in <strong>Settings</strong>.</p>
 
-<!-- ── Filters ─────────────────────────────────────────────────────── -->
-<div class="filters">
-  <button class="filt active" data-f="all">All</button>
-  <button class="filt" data-f="outdated">Outdated</button>
-  <button class="filt" data-f="expiring_soon">Expiring Soon</button>
-  <button class="filt" data-f="ok">Up to Date</button>
-  <button class="filt" data-f="error">Errors</button>
+<!-- ── Controls Bar ────────────────────────────────────────────────── -->
+<div class="controls">
+  <div class="filt-group">
+    <button class="filt active" data-f="all">All</button>
+    <button class="filt" data-f="outdated">Outdated</button>
+    <button class="filt" data-f="expiring_soon">Expiring Soon</button>
+    <button class="filt" data-f="ok">Up to Date</button>
+    <button class="filt" data-f="error">Errors</button>
+  </div>
+  <div class="search-wrap">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="search" id="search-input" class="search-input" placeholder="Search artists or venues…" />
+  </div>
+  <div class="view-tabs">
+    <button class="view-tab active" data-v="cards">Cards</button>
+    <button class="view-tab" data-v="events">Events</button>
+  </div>
 </div>
 
-<!-- ── Grid ───────────────────────────────────────────────────────── -->
+<!-- ── Card Grid ───────────────────────────────────────────────────── -->
 <main class="grid" id="grid">
   <div class="placeholder"><div class="spin dark lg"></div><p>Starting up…</p></div>
 </main>
+
+<!-- ── Event List ──────────────────────────────────────────────────── -->
+<div id="event-list" class="hidden">
+  <div class="placeholder"><div class="spin dark lg"></div><p>Loading…</p></div>
+</div>
 
 <!-- ── Settings Modal ────────────────────────────────────────────── -->
 <div class="overlay hidden" id="overlay" onclick="overlayClick(event)">
   <div class="modal">
     <h2>Settings</h2>
     <p class="modal-desc">
-      Configure where alerts are sent when carousel tiles become outdated.
-      Settings are saved in your browser.
+      Configure alerts, refresh schedule, and proxy options. All settings are saved in your browser.
     </p>
+
+    <div class="field">
+      <label>Auto-refresh interval</label>
+      <select id="refresh-interval">
+        <option value="0">Off</option>
+        <option value="15">Every 15 minutes</option>
+        <option value="30">Every 30 minutes</option>
+        <option value="60">Every hour</option>
+        <option value="120">Every 2 hours</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Warning threshold — flag tiles expiring within</label>
+      <input type="number" id="warn-days" min="1" max="30" placeholder="7" style="width:80px" />
+      <p class="hint">days (default: 7)</p>
+    </div>
 
     <div class="field">
       <label>Slack Incoming Webhook URL</label>
       <input type="url" id="slack-url" placeholder="https://hooks.slack.com/services/…" />
-      <p class="hint">Create one at api.slack.com/messaging/webhooks. A message is posted when new outdated tiles are found.</p>
+      <p class="hint">A message is posted when new outdated tiles are found.</p>
     </div>
 
     <div class="field">
@@ -355,12 +484,6 @@
       <p class="hint">Must append the encoded target URL. Leave blank to use the built-in proxies (corsproxy.io → allorigins → codetabs).</p>
     </div>
 
-    <div class="field">
-      <label>Warning threshold — flag tiles expiring within</label>
-      <input type="number" id="warn-days" min="1" max="30" placeholder="7" style="width:80px" />
-      <p class="hint">days (default: 7)</p>
-    </div>
-
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeSettings()">Cancel</button>
       <button class="btn btn-dark" onclick="saveSettings()">Save</button>
@@ -370,9 +493,11 @@
 
 <!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <span>Auto-refreshes every hour</span>
+  <span id="footer-refresh-label">Auto-refreshes every hour</span>
   <span>·</span>
   <button onclick="openSettings()">Settings</button>
+  <span>·</span>
+  <button onclick="exportCSV()">Export CSV</button>
   <span>·</span>
   <span id="proxy-label" style="color:var(--text-muted)"></span>
 </footer>
@@ -405,13 +530,18 @@ const VENUES = [
 
 // ── State ───────────────────────────────────────────────────────────────────
 
-let venueData    = {};          // name → venue result
+let venueData    = {};        // name → venue result
 let activeFilter = 'all';
+let activeView   = 'cards';   // 'cards' | 'events'
+let searchQuery  = '';
 let isScraping   = false;
 let notifGranted = Notification.permission === 'granted';
-let alertedSet   = new Set();  // venues already notified this session
+let alertedSet   = new Set();
+let prevScan     = {};        // name → Set<"artist|dateStr"> — loaded from localStorage
+let refreshTimer = null;
 
-// Ordered list of CORS proxies — tried in sequence until one succeeds
+// ── CORS Proxy list ──────────────────────────────────────────────────────────
+
 const PROXY_LIST = [
   {
     name: 'corsproxy.io',
@@ -434,10 +564,11 @@ const PROXY_LIST = [
 
 function loadSettings() {
   return {
-    slackUrl:    localStorage.getItem('slackUrl')    || '',
-    webhookUrl:  localStorage.getItem('webhookUrl')  || '',
-    warnDays:    parseInt(localStorage.getItem('warnDays') || '7'),
-    customProxy: localStorage.getItem('customProxy') || '',
+    slackUrl:        localStorage.getItem('slackUrl')        || '',
+    webhookUrl:      localStorage.getItem('webhookUrl')      || '',
+    warnDays:        parseInt(localStorage.getItem('warnDays') || '7'),
+    customProxy:     localStorage.getItem('customProxy')     || '',
+    refreshInterval: localStorage.getItem('refreshInterval') || '60',
   };
 }
 
@@ -450,15 +581,30 @@ function getProxies() {
   ];
 }
 
+function openSettings() {
+  const s = loadSettings();
+  document.getElementById('slack-url').value         = s.slackUrl;
+  document.getElementById('webhook-url').value       = s.webhookUrl;
+  document.getElementById('custom-proxy').value      = s.customProxy;
+  document.getElementById('warn-days').value         = s.warnDays;
+  document.getElementById('refresh-interval').value  = s.refreshInterval;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
 function saveSettings() {
-  localStorage.setItem('slackUrl',    document.getElementById('slack-url').value.trim());
-  localStorage.setItem('webhookUrl',  document.getElementById('webhook-url').value.trim());
-  localStorage.setItem('customProxy', document.getElementById('custom-proxy').value.trim());
+  localStorage.setItem('slackUrl',        document.getElementById('slack-url').value.trim());
+  localStorage.setItem('webhookUrl',      document.getElementById('webhook-url').value.trim());
+  localStorage.setItem('customProxy',     document.getElementById('custom-proxy').value.trim());
+  localStorage.setItem('refreshInterval', document.getElementById('refresh-interval').value);
   const d = parseInt(document.getElementById('warn-days').value) || 7;
   localStorage.setItem('warnDays', d);
   closeSettings();
+  scheduleNext();
   if (Object.keys(venueData).length) { recalcStatus(); renderAll(); }
 }
+
+function closeSettings() { document.getElementById('overlay').classList.add('hidden'); }
+function overlayClick(e) { if (e.target === document.getElementById('overlay')) closeSettings(); }
 
 // ── Date Parsing ─────────────────────────────────────────────────────────────
 
@@ -471,10 +617,8 @@ const MONTHS = {
 
 function parseDate(s) {
   if (!s) return null;
-  // "Friday 9 October 2026" or "9 October 2026"
   let m = s.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/i);
   if (m) return new Date(+m[3], MONTHS[m[2].toLowerCase()], +m[1]);
-  // "28 JUL 2026"
   m = s.match(/(\d{1,2})\s+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+(\d{4})/i);
   if (m) return new Date(+m[3], MONTHS[m[2].toLowerCase()], +m[1]);
   return null;
@@ -485,7 +629,7 @@ function tileStatus(date) {
   const { warnDays } = loadSettings();
   const today = new Date(); today.setHours(0,0,0,0);
   const days = Math.floor((date - today) / 86400000);
-  if (days < 0)        return 'outdated';
+  if (days < 0)         return 'outdated';
   if (days <= warnDays) return 'expiring_soon';
   return 'ok';
 }
@@ -503,6 +647,48 @@ function daysRelLabel(isoDate) {
   return '';
 }
 
+// ── Change Detection ─────────────────────────────────────────────────────────
+
+function loadPersistedPrev() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('prevScan') || '{}');
+    Object.entries(raw).forEach(([name, keys]) => {
+      prevScan[name] = new Set(keys);
+    });
+  } catch {}
+}
+
+function savePersistedPrev() {
+  const out = {};
+  Object.entries(venueData).forEach(([name, v]) => {
+    if (v.tiles && v.overall !== 'loading' && v.overall !== 'error') {
+      out[name] = v.tiles.map(t => t.artist + '|' + t.dateStr);
+    }
+  });
+  try { localStorage.setItem('prevScan', JSON.stringify(out)); } catch {}
+  // Update in-memory prevScan to match what was just saved
+  Object.entries(out).forEach(([name, keys]) => { prevScan[name] = new Set(keys); });
+}
+
+function applyChanges(result) {
+  const old = prevScan[result.name];
+  if (!old) {
+    result.tiles.forEach(t => { t.isNew = false; });
+    result.removed    = [];
+    result.hasChanges = false;
+    return;
+  }
+  const newKeys = new Set(result.tiles.map(t => t.artist + '|' + t.dateStr));
+  result.tiles.forEach(t => { t.isNew = !old.has(t.artist + '|' + t.dateStr); });
+  result.removed = [...old]
+    .filter(k => !newKeys.has(k))
+    .map(k => {
+      const pipe = k.indexOf('|');
+      return { artist: k.slice(0, pipe), dateStr: k.slice(pipe + 1) };
+    });
+  result.hasChanges = result.tiles.some(t => t.isNew) || result.removed.length > 0;
+}
+
 // ── Scraping ─────────────────────────────────────────────────────────────────
 
 async function fetchWithTimeout(url, ms) {
@@ -518,7 +704,6 @@ async function fetchWithTimeout(url, ms) {
 async function fetchHTML(url) {
   const proxies = getProxies();
   const errors  = [];
-
   for (const proxy of proxies) {
     try {
       const res = await fetchWithTimeout(proxy.wrap(url), 18000);
@@ -527,16 +712,14 @@ async function fetchHTML(url) {
       if (!text || text.length < 500) throw new Error('Empty response');
       return text;
     } catch (err) {
-      const msg = err.name === 'AbortError' ? 'timeout' : err.message;
-      errors.push(`${proxy.name}: ${msg}`);
+      errors.push(`${proxy.name}: ${err.name === 'AbortError' ? 'timeout' : err.message}`);
     }
   }
-
   throw new Error(errors.join(' · '));
 }
 
 function parseAMG(html) {
-  const doc  = new DOMParser().parseFromString(html, 'text/html');
+  const doc   = new DOMParser().parseFromString(html, 'text/html');
   const tiles = [];
   const seen  = new Set();
 
@@ -549,7 +732,7 @@ function parseAMG(html) {
     tiles.push({ artist, dateStr, date: date?.toISOString() || null, status: tileStatus(date) });
   }
 
-  // 1. Featured carousel at the top
+  // 1. Featured carousel
   doc.querySelectorAll('[data-testid="carousel-slide"]').forEach(slide => {
     addTile(
       (slide.querySelector('h2,h3') || {}).textContent?.trim() || '',
@@ -557,8 +740,8 @@ function parseAMG(html) {
     );
   });
 
-  // 2. Content-list sections (large / medium / small) — same structure as ECE.
-  //    Require a parseable date to skip navigation/info links that share the selector.
+  // 2. Content-list sections (large / medium / small).
+  //    Require a parseable date to skip navigation/info links sharing the selector.
   doc.querySelectorAll('[data-testid="module-content-list-item"]').forEach(item => {
     const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
     const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
@@ -578,7 +761,7 @@ function parseECE(html) {
     const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
     const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
     if (!artist) return;
-    const key = `${artist}|${dateStr}`;
+    const key = artist + '|' + dateStr;
     if (seen.has(key)) return; seen.add(key);
     const date = parseDate(dateStr);
     tiles.push({ artist, dateStr, date: date?.toISOString() || null, status: tileStatus(date) });
@@ -586,25 +769,32 @@ function parseECE(html) {
   return tiles;
 }
 
+function sortTilesByDate(tiles) {
+  return tiles.slice().sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
+}
+
 async function scrapeVenue(venue) {
   try {
-    const html    = await fetchHTML(venue.url);
-    const tiles   = venue.type === 'amg' ? parseAMG(html) : parseECE(html);
+    const html  = await fetchHTML(venue.url);
+    const tiles = sortTilesByDate(venue.type === 'amg' ? parseAMG(html) : parseECE(html));
     const outdN   = tiles.filter(t => t.status === 'outdated').length;
     const expN    = tiles.filter(t => t.status === 'expiring_soon').length;
     const overall = outdN > 0 ? 'outdated' : expN > 0 ? 'expiring_soon' : tiles.length ? 'ok' : 'unknown';
-    return { ...venue, tiles, outdN, expN, overall, error: null, checkedAt: new Date().toISOString() };
+    return { ...venue, tiles, outdN, expN, overall, error: null, checkedAt: new Date().toISOString(), removed: [], hasChanges: false };
   } catch (err) {
-    return { ...venue, tiles: [], outdN: 0, expN: 0, overall: 'error', error: err.message, checkedAt: new Date().toISOString() };
+    return { ...venue, tiles: [], outdN: 0, expN: 0, overall: 'error', error: err.message, checkedAt: new Date().toISOString(), removed: [], hasChanges: false };
   }
 }
 
-// Recalculate tile statuses with current warnDays (without re-fetching)
+// Recalculate tile statuses with updated warnDays (without re-fetching)
 function recalcStatus() {
   Object.values(venueData).forEach(v => {
-    v.tiles.forEach(t => {
-      if (t.date) t.status = tileStatus(new Date(t.date));
-    });
+    v.tiles.forEach(t => { if (t.date) t.status = tileStatus(new Date(t.date)); });
     v.outdN   = v.tiles.filter(t => t.status === 'outdated').length;
     v.expN    = v.tiles.filter(t => t.status === 'expiring_soon').length;
     v.overall = v.outdN > 0 ? 'outdated' : v.expN > 0 ? 'expiring_soon' : v.tiles.length ? 'ok' : 'unknown';
@@ -618,7 +808,6 @@ async function startScrape() {
   document.getElementById('scan-banner').classList.remove('hidden');
   document.getElementById('err-banner').classList.add('hidden');
 
-  // Show skeleton cards immediately
   showSkeletons();
 
   let done = 0;
@@ -627,16 +816,20 @@ async function startScrape() {
   };
   updateMsg();
 
-  // Fetch in batches of 4 to avoid hammering the proxy
   for (let i = 0; i < VENUES.length; i += 4) {
-    const batch = VENUES.slice(i, i + 4);
+    const batch   = VENUES.slice(i, i + 4);
     const results = await Promise.all(batch.map(scrapeVenue));
-    results.forEach(r => { venueData[r.name] = r; });
+    results.forEach(r => {
+      applyChanges(r);
+      venueData[r.name] = r;
+    });
     done += results.length;
     updateMsg();
-    renderAll();           // update incrementally as results arrive
-    if (i + 4 < VENUES.length) await sleep(300); // small pause between batches
+    renderAll();
+    if (i + 4 < VENUES.length) await sleep(300);
   }
+
+  savePersistedPrev();
 
   const lastTs = new Date();
   document.getElementById('ts').textContent = lastTs.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -646,6 +839,27 @@ async function startScrape() {
 
   handleNotifications();
   scheduleNext();
+}
+
+// Per-venue refresh — scrapes a single venue without affecting others
+async function scrapeOne(name) {
+  if (isScraping) return;
+  const venue = VENUES.find(v => v.name === name);
+  if (!venue) return;
+  // Snapshot current tiles as "previous" for change detection on this venue
+  if (venueData[name] && venueData[name].tiles) {
+    prevScan[name] = new Set(venueData[name].tiles.map(t => t.artist + '|' + t.dateStr));
+  }
+  venueData[name] = { ...venue, overall: 'loading' };
+  renderAll();
+  const result = await scrapeVenue(venue);
+  applyChanges(result);
+  venueData[name] = result;
+  // Persist updated data for this venue
+  prevScan[name] = new Set(result.tiles.map(t => t.artist + '|' + t.dateStr));
+  savePersistedPrev();
+  renderAll();
+  handleNotifications();
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -661,15 +875,115 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function renderAll() {
+  updateSummary();
+  if (activeView === 'events') {
+    document.getElementById('grid').classList.add('hidden');
+    document.getElementById('event-list').classList.remove('hidden');
+    renderEvents();
+  } else {
+    document.getElementById('grid').classList.remove('hidden');
+    document.getElementById('event-list').classList.add('hidden');
+    renderCards();
+  }
+  updateScanAges();
+}
+
+function updateSummary() {
+  const arr  = Object.values(venueData);
+  const done = arr.filter(v => v.overall !== 'loading');
+  document.getElementById('n-out').textContent = done.filter(v => v.overall === 'outdated').length;
+  document.getElementById('n-exp').textContent = done.filter(v => v.overall === 'expiring_soon').length;
+  document.getElementById('n-ok').textContent  = done.filter(v => v.overall === 'ok').length;
+  document.getElementById('n-ev').textContent  = done.reduce((s, v) => s + (v.tiles ? v.tiles.length : 0), 0);
+  document.getElementById('n-tot').textContent = VENUES.length;
+}
+
+function getFilteredVenues() {
+  const q = searchQuery.toLowerCase();
+  let arr = Object.values(venueData);
+  if (activeFilter !== 'all') arr = arr.filter(v => v.overall === activeFilter || v.overall === 'loading');
+  if (q) arr = arr.filter(v =>
+    v.name.toLowerCase().includes(q) ||
+    (v.tiles || []).some(t => t.artist.toLowerCase().includes(q))
+  );
+  return arr;
+}
+
+function renderCards() {
+  const ORDER = { outdated: 0, expiring_soon: 1, ok: 2, unknown: 3, error: 4, loading: 5 };
+  const arr   = getFilteredVenues().sort((a, b) => (ORDER[a.overall] ?? 9) - (ORDER[b.overall] ?? 9));
+  const grid  = document.getElementById('grid');
+  if (!arr.length) {
+    grid.innerHTML = '<div class="placeholder"><p>No venues match.</p></div>';
+    return;
+  }
+  grid.innerHTML = arr.map(buildCardHTML).join('');
+}
+
+function renderEvents() {
+  const q    = searchQuery.toLowerCase();
+  const rows = [];
+  Object.values(venueData).forEach(v => {
+    if (v.overall === 'loading' || v.overall === 'error') return;
+    if (activeFilter !== 'all' && v.overall !== activeFilter) return;
+    (v.tiles || []).forEach(t => {
+      if (q && !t.artist.toLowerCase().includes(q) && !v.name.toLowerCase().includes(q)) return;
+      rows.push({ ...t, venueName: v.name, venueUrl: v.url });
+    });
+  });
+  // Sort by date ascending, undated last
+  rows.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  const container = document.getElementById('event-list');
+  if (!rows.length) {
+    const loading = Object.values(venueData).some(v => v.overall === 'loading');
+    container.innerHTML = `<div class="placeholder"><p>${loading ? 'Loading…' : 'No events match.'}</p></div>`;
+    return;
+  }
+
+  const rowsHTML = rows.map(r => {
+    const rel = daysRelLabel(r.date);
+    return `<tr class="ev-row ${r.status}${r.isNew ? ' is-new' : ''}">
+      <td class="ev-date">${esc(r.dateStr)}${rel ? `<span class="ev-rel">${esc(rel)}</span>` : ''}</td>
+      <td class="ev-artist">${esc(r.artist)}${r.isNew ? '<span class="new-badge">NEW</span>' : ''}</td>
+      <td class="ev-venue"><a href="${esc(r.venueUrl)}" target="_blank" rel="noopener">${esc(r.venueName)}</a></td>
+      <td><span class="badge ${r.status}">${STATUS_LABELS[r.status] || r.status}</span></td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `<table class="ev-table">
+    <thead><tr><th>Date</th><th>Artist</th><th>Venue</th><th>Status</th></tr></thead>
+    <tbody>${rowsHTML}</tbody>
+  </table>`;
+}
+
 function buildTileHTML(t) {
-  const tag  = daysRelLabel(t.date);
-  return `<div class="tile ${t.status}">
+  const tag = daysRelLabel(t.date);
+  const cls = t.isNew ? 'tile is-new' : `tile ${t.status}`;
+  return `<div class="${cls}">
     <div class="dot"></div>
     <div class="tile-info">
       <div class="tile-artist" title="${esc(t.artist)}">${esc(t.artist)}</div>
       <div class="tile-date">${esc(t.dateStr)}</div>
     </div>
-    ${tag ? `<span class="tile-tag">${esc(tag)}</span>` : ''}
+    ${t.isNew ? '<span class="tile-tag new-tag">NEW</span>' : (tag ? `<span class="tile-tag">${esc(tag)}</span>` : '')}
+  </div>`;
+}
+
+function buildRemovedTileHTML(r) {
+  return `<div class="tile removed">
+    <div class="dot"></div>
+    <div class="tile-info">
+      <div class="tile-artist removed-artist" title="${esc(r.artist)}">${esc(r.artist)}</div>
+      <div class="tile-date">${esc(r.dateStr)}</div>
+    </div>
+    <span class="tile-tag removed-tag">REMOVED</span>
   </div>`;
 }
 
@@ -683,23 +997,44 @@ function buildCardHTML(v) {
       <div class="tiles"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
     </div>`;
   }
+
+  const refreshSVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>`;
+
   const body = v.error
     ? `<p class="card-err">⚠ ${esc(v.error)}</p>`
-    : v.tiles.length
-      ? `<div class="tiles">${v.tiles.map(buildTileHTML).join('')}</div>`
-      : `<p class="card-err">No carousel tiles found.</p>`;
+    : v.tiles.length || (v.removed && v.removed.length)
+      ? `<div class="tiles">
+          ${v.tiles.map(buildTileHTML).join('')}
+          ${(v.removed || []).map(buildRemovedTileHTML).join('')}
+        </div>`
+      : `<p class="card-err">No tiles found.</p>`;
 
-  const foot = v.error ? '' : `<div class="card-foot">
-    ${v.tiles.length} tile${v.tiles.length !== 1 ? 's' : ''}
-    ${v.outdN ? `· <strong style="color:var(--red)">${v.outdN} outdated</strong>` : ''}
-    ${v.expN  ? `· <strong style="color:var(--orange)">${v.expN} expiring</strong>` : ''}
-    ${!v.outdN && !v.expN && v.tiles.length ? '· All clear' : ''}
+  const newCount     = v.tiles.filter(t => t.isNew).length;
+  const removedCount = (v.removed || []).length;
+  const changesNote  = v.hasChanges
+    ? `<span class="changes-note">${[
+        newCount     ? `+${newCount} new`          : '',
+        removedCount ? `−${removedCount} removed`  : '',
+      ].filter(Boolean).join(' ')}</span>`
+    : '';
+
+  const ageAttr = v.checkedAt ? ` data-ts="${esc(v.checkedAt)}"` : '';
+  const foot = `<div class="card-foot">
+    <span class="scan-age"${ageAttr}></span>
+    ${v.tiles.length ? `<span>· ${v.tiles.length} event${v.tiles.length !== 1 ? 's' : ''}</span>` : ''}
+    ${v.outdN ? `<span>· <strong style="color:var(--red)">${v.outdN} outdated</strong></span>` : ''}
+    ${v.expN  ? `<span>· <strong style="color:var(--orange)">${v.expN} expiring</strong></span>` : ''}
+    ${!v.outdN && !v.expN && v.tiles.length ? '<span>· All clear</span>' : ''}
+    ${changesNote}
   </div>`;
 
   return `<article class="card ${v.overall}">
     <div class="card-head">
       <a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.name)}</a>
-      <span class="badge ${v.overall}">${STATUS_LABELS[v.overall] || v.overall}</span>
+      <div class="card-head-right">
+        <span class="badge ${v.overall}">${STATUS_LABELS[v.overall] || v.overall}</span>
+        <button class="card-refresh-btn" data-refresh-venue="${esc(v.name)}" title="Refresh this venue">${refreshSVG}</button>
+      </div>
     </div>
     ${body}
     ${foot}
@@ -707,39 +1042,58 @@ function buildCardHTML(v) {
 }
 
 function showSkeletons() {
-  // Insert skeleton for any venue not yet loaded
   VENUES.forEach(v => {
     if (!venueData[v.name]) venueData[v.name] = { ...v, overall: 'loading' };
   });
   renderAll();
 }
 
-function renderAll() {
-  const ORDER = { outdated: 0, expiring_soon: 1, ok: 2, unknown: 3, error: 4, loading: 5 };
-  const arr = Object.values(venueData);
+// ── Scan Age Labels ──────────────────────────────────────────────────────────
 
-  // Update summary counts (only for completed venues)
-  const done = arr.filter(v => v.overall !== 'loading');
-  document.getElementById('n-out').textContent = done.filter(v => v.overall === 'outdated').length;
-  document.getElementById('n-exp').textContent = done.filter(v => v.overall === 'expiring_soon').length;
-  document.getElementById('n-ok').textContent  = done.filter(v => v.overall === 'ok').length;
-  document.getElementById('n-tot').textContent = VENUES.length;
+function scanAgeLabel(isoStr) {
+  if (!isoStr) return '';
+  const secs = Math.floor((Date.now() - new Date(isoStr)) / 1000);
+  if (secs < 60)    return 'Checked just now';
+  if (secs < 3600)  return `Checked ${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `Checked ${Math.floor(secs / 3600)}h ago`;
+  return `Checked ${Math.floor(secs / 86400)}d ago`;
+}
 
-  const filtered = activeFilter === 'all' ? arr : arr.filter(v => v.overall === activeFilter);
-  filtered.sort((a, b) => (ORDER[a.overall] ?? 9) - (ORDER[b.overall] ?? 9));
+function updateScanAges() {
+  document.querySelectorAll('.scan-age[data-ts]').forEach(el => {
+    const stale = (Date.now() - new Date(el.dataset.ts)) > 3 * 3600 * 1000;
+    el.textContent = scanAgeLabel(el.dataset.ts);
+    el.style.color  = stale ? 'var(--orange)' : 'var(--text-muted)';
+  });
+}
 
-  const grid = document.getElementById('grid');
-  if (!filtered.length) {
-    grid.innerHTML = '<div class="placeholder"><p>No venues match this filter.</p></div>';
-    return;
-  }
-  grid.innerHTML = filtered.map(buildCardHTML).join('');
+setInterval(updateScanAges, 30000);
+
+// ── Export CSV ───────────────────────────────────────────────────────────────
+
+function exportCSV() {
+  const rows = [['Venue', 'Artist', 'Date', 'Status', 'Days Until', 'Is New']];
+  Object.values(venueData).forEach(v => {
+    if (!v.tiles || v.overall === 'loading') return;
+    v.tiles.forEach(t => {
+      const daysUntil = t.date
+        ? Math.floor((new Date(t.date) - new Date().setHours(0,0,0,0)) / 86400000)
+        : '';
+      rows.push([v.name, t.artist, t.dateStr, t.status, daysUntil, t.isNew ? 'Yes' : 'No']);
+    });
+  });
+  const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const link = Object.assign(document.createElement('a'), {
+    href:     URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+    download: `venue-events-${new Date().toISOString().slice(0, 10)}.csv`,
+  });
+  link.click();
 }
 
 // ── Notifications ─────────────────────────────────────────────────────────
 
 async function toggleNotifications() {
-  if (notifGranted) return; // already on
+  if (notifGranted) return;
   const perm = await Notification.requestPermission();
   notifGranted = perm === 'granted';
   updateNotifBtn();
@@ -748,18 +1102,13 @@ async function toggleNotifications() {
 function updateNotifBtn() {
   const btn = document.getElementById('notif-btn');
   const lbl = document.getElementById('notif-label');
-  if (notifGranted) {
-    btn.classList.add('on');
-    lbl.textContent = 'Alerts On';
-  } else {
-    lbl.textContent = 'Enable Alerts';
-  }
+  if (notifGranted) { btn.classList.add('on'); lbl.textContent = 'Alerts On'; }
+  else              { lbl.textContent = 'Enable Alerts'; }
 }
 
 function handleNotifications() {
   const outdated = Object.values(venueData).filter(v => v.overall === 'outdated');
 
-  // Browser notifications for newly outdated
   if (notifGranted) {
     outdated.filter(v => !alertedSet.has(v.name)).forEach(v => {
       alertedSet.add(v.name);
@@ -774,10 +1123,8 @@ function handleNotifications() {
   const { slackUrl, webhookUrl } = loadSettings();
   const newlyOutdated = outdated.filter(v => !alertedSet.has(`sent_${v.name}`));
   if (!newlyOutdated.length) return;
-
   newlyOutdated.forEach(v => alertedSet.add(`sent_${v.name}`));
-
-  if (slackUrl) sendSlack(slackUrl, newlyOutdated);
+  if (slackUrl)   sendSlack(slackUrl, newlyOutdated);
   if (webhookUrl) sendWebhook(webhookUrl, newlyOutdated);
 }
 
@@ -798,7 +1145,7 @@ async function sendSlack(url, venues) {
         blocks: [{ type: 'header', text: { type: 'plain_text', text: 'Outdated Homepage Carousel Tiles' } }, ...blocks],
       }),
     });
-  } catch (_) {}
+  } catch {}
 }
 
 async function sendWebhook(url, venues) {
@@ -807,23 +1154,34 @@ async function sendWebhook(url, venues) {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        event: 'outdated_tiles_detected',
+        event:     'outdated_tiles_detected',
         timestamp: new Date().toISOString(),
-        venues: venues.map(v => ({ name: v.name, url: v.url, outdatedTiles: v.tiles.filter(t => t.status === 'outdated') })),
+        venues:    venues.map(v => ({ name: v.name, url: v.url, outdatedTiles: v.tiles.filter(t => t.status === 'outdated') })),
       }),
     });
-  } catch (_) {}
+  } catch {}
 }
 
 // ── Auto-refresh ───────────────────────────────────────────────────────────
 
-let refreshTimer;
 function scheduleNext() {
   clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(startScrape, 60 * 60 * 1000); // 1 hour
+  const mins = parseInt(localStorage.getItem('refreshInterval') || '60');
+  const label = mins === 0  ? 'Auto-refresh off' :
+                mins < 60   ? `Auto-refreshes every ${mins} min` :
+                mins === 60 ? 'Auto-refreshes every hour' :
+                              `Auto-refreshes every ${mins / 60}h`;
+  document.getElementById('footer-refresh-label').textContent = label;
+  if (mins > 0) refreshTimer = setTimeout(startScrape, mins * 60 * 1000);
 }
 
-// ── Filters ─────────────────────────────────────────────────────────────────
+// ── View & Filter Controls ───────────────────────────────────────────────────
+
+function setView(view) {
+  activeView = view;
+  document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.v === view));
+  renderAll();
+}
 
 document.querySelectorAll('.filt').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -834,23 +1192,27 @@ document.querySelectorAll('.filt').forEach(btn => {
   });
 });
 
-// ── Settings Modal ─────────────────────────────────────────────────────────
+document.querySelectorAll('.view-tab').forEach(btn => {
+  btn.addEventListener('click', () => setView(btn.dataset.v));
+});
 
-function openSettings() {
-  const s = loadSettings();
-  document.getElementById('slack-url').value    = s.slackUrl;
-  document.getElementById('webhook-url').value  = s.webhookUrl;
-  document.getElementById('custom-proxy').value = s.customProxy;
-  document.getElementById('warn-days').value    = s.warnDays;
-  document.getElementById('overlay').classList.remove('hidden');
-}
-function closeSettings() { document.getElementById('overlay').classList.add('hidden'); }
-function overlayClick(e) { if (e.target === document.getElementById('overlay')) closeSettings(); }
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  renderAll();
+});
+
+// Per-venue refresh via event delegation
+document.getElementById('grid').addEventListener('click', e => {
+  const btn = e.target.closest('[data-refresh-venue]');
+  if (btn) scrapeOne(btn.dataset.refreshVenue);
+});
 
 // ── Init ───────────────────────────────────────────────────────────────────
 
 document.getElementById('proxy-label').textContent = 'Proxies: corsproxy.io, allorigins, codetabs';
 updateNotifBtn();
+scheduleNext();
+loadPersistedPrev();
 startScrape();
 </script>
 </body>
