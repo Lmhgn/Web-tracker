@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Venue Carousel Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:          #dc2626;
+      --red-light:    #fef2f2;
+      --red-border:   #fca5a5;
+      --orange:       #d97706;
+      --orange-light: #fffbeb;
+      --orange-border:#fcd34d;
+      --green:        #16a34a;
+      --green-light:  #f0fdf4;
+      --green-border: #86efac;
+      --gray:         #6b7280;
+      --gray-light:   #f9fafb;
+      --gray-border:  #e5e7eb;
+      --bg:           #f1f5f9;
+      --surface:      #ffffff;
+      --text:         #111827;
+      --text-muted:   #6b7280;
+      --border:       #e2e8f0;
+      --navy:         #1e293b;
+      --radius:       12px;
+      --shadow:       0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md:    0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--navy);
+      color: #fff;
+      padding: 1.1rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+    .header-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .header-right { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .last-checked { display: flex; flex-direction: column; align-items: flex-end; font-size: 0.72rem; }
+    .last-checked .lbl { color: #94a3b8; }
+    .last-checked .val { color: #e2e8f0; font-weight: 500; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.42rem 0.9rem; border-radius: 8px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; border: none; transition: all .15s;
+    }
+    .btn-blue  { background: #3b82f6; color: #fff; }
+    .btn-blue:hover  { background: #2563eb; }
+    .btn-blue:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost { background: rgba(255,255,255,.12); color: #e2e8f0; border: 1px solid rgba(255,255,255,.18); }
+    .btn-ghost:hover { background: rgba(255,255,255,.22); }
+    .btn-ghost.on { background: rgba(22,163,74,.35); border-color: rgba(22,163,74,.5); }
+    .btn-dark { background: var(--navy); color: #fff; }
+    .btn-dark:hover { background: #0f172a; }
+
+    /* ── Summary Bar ── */
+    .summary {
+      display: flex; gap: 0.85rem; padding: 0.9rem 1.75rem;
+      background: var(--surface); border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .stat {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0.5rem 1.25rem; border-radius: 10px;
+      border: 1.5px solid var(--gray-border); background: var(--gray-light); min-width: 88px;
+    }
+    .stat-n { font-size: 1.75rem; font-weight: 800; line-height: 1; }
+    .stat-l { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-top: 3px; }
+    .stat.red    { border-color: var(--red-border);    background: var(--red-light);    }
+    .stat.red    .stat-n { color: var(--red);    }
+    .stat.orange { border-color: var(--orange-border); background: var(--orange-light); }
+    .stat.orange .stat-n { color: var(--orange); }
+    .stat.green  { border-color: var(--green-border);  background: var(--green-light);  }
+    .stat.green  .stat-n { color: var(--green);  }
+    .stat.neutral .stat-n { color: #334155; }
+
+    /* ── Status Banner ── */
+    .banner {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.6rem 1.75rem; font-size: 0.82rem; font-weight: 500;
+    }
+    .banner.scanning { background: #eff6ff; border-bottom: 1px solid #bfdbfe; color: #1e40af; }
+    .banner.error    { background: #fef2f2; border-bottom: 1px solid var(--red-border); color: var(--red); }
+    .hidden { display: none !important; }
+
+    /* ── Filter Bar ── */
+    .filters { display: flex; gap: 0.45rem; padding: 1rem 1.75rem 0; flex-wrap: wrap; }
+    .filt {
+      padding: 0.3rem 0.85rem; border-radius: 20px; border: 1.5px solid var(--border);
+      background: var(--surface); font-size: 0.78rem; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; transition: all .15s;
+    }
+    .filt:hover { border-color: #94a3b8; color: var(--text); }
+    .filt.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+    /* ── Grid ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.1rem; padding: 1.1rem 1.75rem 2rem; flex: 1;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: var(--shadow); border-left: 4px solid var(--gray-border);
+      display: flex; flex-direction: column; transition: box-shadow .2s;
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .card.outdated      { border-left-color: var(--red); }
+    .card.expiring_soon { border-left-color: var(--orange); }
+    .card.ok            { border-left-color: var(--green); }
+
+    .card-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 0.9rem 1rem 0.6rem; gap: 0.5rem;
+    }
+    .card-head a {
+      font-size: 0.9rem; font-weight: 700; color: var(--text);
+      text-decoration: none; line-height: 1.3;
+    }
+    .card-head a:hover { text-decoration: underline; color: #2563eb; }
+
+    .badge {
+      flex-shrink: 0; font-size: 0.65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      padding: 0.18rem 0.5rem; border-radius: 20px;
+    }
+    .badge.outdated      { background: var(--red-light);    color: var(--red);    border: 1px solid var(--red-border); }
+    .badge.expiring_soon { background: var(--orange-light); color: var(--orange); border: 1px solid var(--orange-border); }
+    .badge.ok            { background: var(--green-light);  color: var(--green);  border: 1px solid var(--green-border); }
+    .badge.error         { background: var(--gray-light);   color: var(--gray);   border: 1px solid var(--gray-border); }
+    .badge.loading       { background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; }
+
+    .tiles { padding: 0 1rem 0.9rem; display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
+
+    .tile {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.45rem 0.6rem; border-radius: 8px;
+      background: #f8fafc; border: 1px solid var(--border);
+    }
+    .tile.outdated      { background: var(--red-light);    border-color: var(--red-border); }
+    .tile.expiring_soon { background: var(--orange-light); border-color: var(--orange-border); }
+    .tile.ok            { background: var(--green-light);  border-color: var(--green-border); }
+
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--gray); }
+    .tile.outdated      .dot { background: var(--red); }
+    .tile.expiring_soon .dot { background: var(--orange); }
+    .tile.ok            .dot { background: var(--green); }
+
+    .tile-info { flex: 1; min-width: 0; }
+    .tile-artist { font-size: 0.78rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .tile-date   { font-size: 0.7rem;  color: var(--text-muted); margin-top: 1px; }
+    .tile.outdated      .tile-date { color: var(--red);    font-weight: 600; }
+    .tile.expiring_soon .tile-date { color: var(--orange); font-weight: 600; }
+
+    .tile-tag {
+      font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+      padding: 0.12rem 0.4rem; border-radius: 4px;
+    }
+    .tile.outdated      .tile-tag { background: var(--red);    color: #fff; }
+    .tile.expiring_soon .tile-tag { background: var(--orange); color: #fff; }
+
+    .card-foot {
+      padding: 0.45rem 1rem 0.7rem; border-top: 1px solid var(--border);
+      font-size: 0.7rem; color: var(--text-muted);
+    }
+    .card-err { font-size: 0.75rem; color: var(--gray); padding: 0.5rem 1rem 0.9rem; }
+
+    /* skeleton tiles while loading */
+    .skel {
+      height: 44px; border-radius: 8px;
+      background: linear-gradient(90deg, #f0f4f8 25%, #e8edf2 50%, #f0f4f8 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* ── Placeholder ── */
+    .placeholder {
+      grid-column: 1/-1; display: flex; flex-direction: column;
+      align-items: center; gap: 1rem; padding: 3rem; color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── Spinner ── */
+    .spin {
+      width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%;
+      animation: rot .65s linear infinite; flex-shrink: 0;
+    }
+    .spin.dark { border-color: #e2e8f0; border-top-color: #3b82f6; }
+    .spin.lg   { width: 32px; height: 32px; border-width: 3.5px; }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    /* ── Settings Modal ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999; padding: 1rem;
+    }
+    .modal {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 1.75rem; max-width: 540px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .modal h2 { font-size: 1.1rem; margin-bottom: 0.4rem; }
+    .modal-desc { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5; }
+
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .field input {
+      width: 100%; padding: 0.5rem 0.75rem; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 0.85rem; color: var(--text);
+      outline: none; transition: border-color .15s;
+    }
+    .field input:focus { border-color: #3b82f6; }
+    .field .hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; margin-top: 1.25rem; }
+    .btn-outline {
+      padding: 0.42rem 0.9rem; border-radius: 8px; font-size: 0.82rem;
+      font-weight: 600; cursor: pointer; background: none;
+      border: 1.5px solid var(--border); color: var(--text-muted); transition: all .15s;
+    }
+    .btn-outline:hover { border-color: #94a3b8; color: var(--text); }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 0.65rem 1.75rem; border-top: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center;
+      gap: 0.65rem; font-size: 0.75rem; color: var(--text-muted);
+    }
+    .footer button { background: none; border: none; color: #3b82f6; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
+    .footer button:hover { color: #2563eb; }
+
+    /* ── Proxy notice ── */
+    .proxy-note {
+      font-size: 0.72rem; color: var(--text-muted); padding: 0.4rem 1.75rem;
+      background: #f8fafc; border-bottom: 1px solid var(--border);
+    }
+
+    @media (max-width: 580px) {
+      .header { padding: 0.9rem 1rem; }
+      .summary { padding: 0.75rem 1rem; }
+      .filters { padding: 0.75rem 1rem 0; }
+      .grid    { padding: 1rem; grid-template-columns: 1fr; }
+      .header-right { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────────────────── -->
+<header class="header">
+  <div>
+    <h1>Venue Carousel Tracker</h1>
+    <p class="header-sub">Homepage tile monitor · 20 venues · auto-refreshes hourly</p>
+  </div>
+  <div class="header-right">
+    <div class="last-checked">
+      <span class="lbl">Last checked</span>
+      <span class="val" id="ts">—</span>
+    </div>
+    <button class="btn btn-blue" id="refresh-btn" onclick="startScrape()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      Refresh
+    </button>
+    <button class="btn btn-ghost" id="notif-btn" onclick="toggleNotifications()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notif-label">Enable Alerts</span>
+    </button>
+    <button class="btn btn-ghost" onclick="openSettings()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Settings
+    </button>
+  </div>
+</header>
+
+<!-- ── Summary Bar ──────────────────────────────────────────────────── -->
+<div class="summary">
+  <div class="stat red">    <span class="stat-n" id="n-out">—</span><span class="stat-l">Outdated</span></div>
+  <div class="stat orange"><span class="stat-n" id="n-exp">—</span><span class="stat-l">Expiring Soon</span></div>
+  <div class="stat green"> <span class="stat-n" id="n-ok">—</span> <span class="stat-l">Up to Date</span></div>
+  <div class="stat neutral"><span class="stat-n" id="n-tot">—</span><span class="stat-l">Venues</span></div>
+</div>
+
+<!-- ── Status Banners ───────────────────────────────────────────────── -->
+<div class="banner scanning hidden" id="scan-banner">
+  <div class="spin dark"></div>
+  <span id="scan-msg">Scanning venues…</span>
+</div>
+<div class="banner error hidden" id="err-banner">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span id="err-msg"></span>
+</div>
+<p class="proxy-note">Pages are fetched via a public CORS proxy. If a venue shows an error, try refreshing — transient proxy failures are normal.</p>
+
+<!-- ── Filters ─────────────────────────────────────────────────────── -->
+<div class="filters">
+  <button class="filt active" data-f="all">All</button>
+  <button class="filt" data-f="outdated">Outdated</button>
+  <button class="filt" data-f="expiring_soon">Expiring Soon</button>
+  <button class="filt" data-f="ok">Up to Date</button>
+  <button class="filt" data-f="error">Errors</button>
+</div>
+
+<!-- ── Grid ───────────────────────────────────────────────────────── -->
+<main class="grid" id="grid">
+  <div class="placeholder"><div class="spin dark lg"></div><p>Starting up…</p></div>
+</main>
+
+<!-- ── Settings Modal ────────────────────────────────────────────── -->
+<div class="overlay hidden" id="overlay" onclick="overlayClick(event)">
+  <div class="modal">
+    <h2>Settings</h2>
+    <p class="modal-desc">
+      Configure where alerts are sent when carousel tiles become outdated.
+      Settings are saved in your browser.
+    </p>
+
+    <div class="field">
+      <label>Slack Incoming Webhook URL</label>
+      <input type="url" id="slack-url" placeholder="https://hooks.slack.com/services/…" />
+      <p class="hint">Create one at api.slack.com/messaging/webhooks. A message is posted when new outdated tiles are found.</p>
+    </div>
+
+    <div class="field">
+      <label>Generic Webhook URL <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
+      <input type="url" id="webhook-url" placeholder="https://your-server.com/webhook" />
+      <p class="hint">Receives a JSON POST: <code>{ event, timestamp, venues[] }</code></p>
+    </div>
+
+    <div class="field">
+      <label>Warning threshold — flag tiles expiring within</label>
+      <input type="number" id="warn-days" min="1" max="30" placeholder="7" style="width:80px" />
+      <p class="hint">days (default: 7)</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeSettings()">Cancel</button>
+      <button class="btn btn-dark" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────────── -->
+<footer class="footer">
+  <span>Auto-refreshes every hour</span>
+  <span>·</span>
+  <button onclick="openSettings()">Settings</button>
+  <span>·</span>
+  <span id="proxy-label" style="color:var(--text-muted)"></span>
+</footer>
+
+<script>
+// ── Venues ─────────────────────────────────────────────────────────────────
+
+const VENUES = [
+  { name: 'O2 Academy Birmingham',            url: 'https://www.academymusicgroup.com/o2academybirmingham',           type: 'amg' },
+  { name: 'O2 Academy Bournemouth',           url: 'https://www.academymusicgroup.com/o2academybournemouth',          type: 'amg' },
+  { name: 'O2 Academy Bristol',               url: 'https://www.academymusicgroup.com/o2academybristol',              type: 'amg' },
+  { name: 'O2 Academy Brixton',               url: 'https://www.academymusicgroup.com/o2academybrixton',              type: 'amg' },
+  { name: 'O2 Academy Glasgow',               url: 'https://www.academymusicgroup.com/o2academyglasgow',              type: 'amg' },
+  { name: 'O2 Academy Islington',             url: 'https://www.academymusicgroup.com/o2academyislington',            type: 'amg' },
+  { name: 'O2 Academy Leeds',                 url: 'https://www.academymusicgroup.com/o2academyleeds',                type: 'amg' },
+  { name: 'O2 Academy Leicester',             url: 'https://www.academymusicgroup.com/o2academyleicester',            type: 'amg' },
+  { name: 'O2 Academy Liverpool',             url: 'https://www.academymusicgroup.com/o2academyliverpool',            type: 'amg' },
+  { name: 'O2 Academy Oxford',                url: 'https://www.academymusicgroup.com/o2academyoxford',               type: 'amg' },
+  { name: 'O2 Academy Sheffield',             url: 'https://www.academymusicgroup.com/o2academysheffield',            type: 'amg' },
+  { name: 'O2 Apollo Manchester',             url: 'https://www.academymusicgroup.com/o2apollomanchester',            type: 'amg' },
+  { name: 'O2 City Hall Newcastle',           url: 'https://www.academymusicgroup.com/o2cityhallnewcastle',           type: 'amg' },
+  { name: 'O2 Forum Kentish Town',            url: 'https://www.academymusicgroup.com/o2forumkentishtown',            type: 'amg' },
+  { name: 'O2 Guildhall Southampton',         url: 'https://www.academymusicgroup.com/o2guildhallsouthampton',        type: 'amg' },
+  { name: 'O2 Institute Birmingham',          url: 'https://www.academymusicgroup.com/o2institutebirmingham',         type: 'amg' },
+  { name: 'O2 Ritz Manchester',               url: 'https://www.academymusicgroup.com/o2ritzmanchester',              type: 'amg' },
+  { name: "O2 Shepherd's Bush Empire",        url: 'https://www.academymusicgroup.com/o2shepherdsbushempire',         type: 'amg' },
+  { name: 'O2 Victoria Warehouse Manchester', url: 'https://www.academymusicgroup.com/o2victoriawarehousemanchester', type: 'amg' },
+  { name: 'Edinburgh Corn Exchange',          url: 'https://www.edinburghcornexchange.co.uk',                         type: 'ece' },
+];
+
+// ── State ───────────────────────────────────────────────────────────────────
+
+let venueData    = {};          // name → venue result
+let activeFilter = 'all';
+let isScraping   = false;
+let notifGranted = Notification.permission === 'granted';
+let alertedSet   = new Set();  // venues already notified this session
+
+const PROXY = 'https://api.allorigins.win/raw?url=';
+
+// ── Settings ────────────────────────────────────────────────────────────────
+
+function loadSettings() {
+  return {
+    slackUrl:   localStorage.getItem('slackUrl')   || '',
+    webhookUrl: localStorage.getItem('webhookUrl') || '',
+    warnDays:   parseInt(localStorage.getItem('warnDays') || '7'),
+  };
+}
+
+function saveSettings() {
+  localStorage.setItem('slackUrl',   document.getElementById('slack-url').value.trim());
+  localStorage.setItem('webhookUrl', document.getElementById('webhook-url').value.trim());
+  const d = parseInt(document.getElementById('warn-days').value) || 7;
+  localStorage.setItem('warnDays', d);
+  closeSettings();
+  // Re-render with new threshold
+  if (Object.keys(venueData).length) {
+    recalcStatus();
+    renderAll();
+  }
+}
+
+// ── Date Parsing ─────────────────────────────────────────────────────────────
+
+const MONTHS = {
+  january:0,february:1,march:2,april:3,may:4,june:5,
+  july:6,august:7,september:8,october:9,november:10,december:11,
+  jan:0,feb:1,mar:2,apr:3,may:4,jun:5,
+  jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+};
+
+function parseDate(s) {
+  if (!s) return null;
+  // "Friday 9 October 2026" or "9 October 2026"
+  let m = s.match(/(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})/i);
+  if (m) return new Date(+m[3], MONTHS[m[2].toLowerCase()], +m[1]);
+  // "28 JUL 2026"
+  m = s.match(/(\d{1,2})\s+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+(\d{4})/i);
+  if (m) return new Date(+m[3], MONTHS[m[2].toLowerCase()], +m[1]);
+  return null;
+}
+
+function tileStatus(date) {
+  if (!date) return 'unknown';
+  const { warnDays } = loadSettings();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Math.floor((date - today) / 86400000);
+  if (days < 0)        return 'outdated';
+  if (days <= warnDays) return 'expiring_soon';
+  return 'ok';
+}
+
+function daysRelLabel(isoDate) {
+  if (!isoDate) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(isoDate); d.setHours(0,0,0,0);
+  const diff = Math.floor((d - today) / 86400000);
+  if (diff === 0)  return 'Today';
+  if (diff === 1)  return 'Tomorrow';
+  if (diff === -1) return '1d ago';
+  if (diff < 0)   return `${Math.abs(diff)}d ago`;
+  if (diff <= 14) return `${diff}d`;
+  return '';
+}
+
+// ── Scraping ─────────────────────────────────────────────────────────────────
+
+async function fetchHTML(url) {
+  const res = await fetch(PROXY + encodeURIComponent(url), { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  if (!text || text.length < 500) throw new Error('Empty or truncated response');
+  return text;
+}
+
+function parseAMG(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const tiles = []; const seen = new Set();
+  doc.querySelectorAll('[data-testid="carousel-slide"]').forEach(slide => {
+    const artist  = (slide.querySelector('h2,h3') || {}).textContent?.trim() || '';
+    const dateStr = (slide.querySelector('p')     || {}).textContent?.trim() || '';
+    if (!artist) return;
+    const key = `${artist}|${dateStr}`;
+    if (seen.has(key)) return; seen.add(key);
+    const date = parseDate(dateStr);
+    tiles.push({ artist, dateStr, date: date?.toISOString() || null, status: tileStatus(date) });
+  });
+  return tiles;
+}
+
+function parseECE(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const tiles = []; const seen = new Set();
+  const first = doc.querySelector('[data-testid="module-content-list-medium"]');
+  if (!first) return tiles;
+  first.querySelectorAll('[data-testid="module-content-list-item"]').forEach(item => {
+    const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
+    const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
+    if (!artist) return;
+    const key = `${artist}|${dateStr}`;
+    if (seen.has(key)) return; seen.add(key);
+    const date = parseDate(dateStr);
+    tiles.push({ artist, dateStr, date: date?.toISOString() || null, status: tileStatus(date) });
+  });
+  return tiles;
+}
+
+async function scrapeVenue(venue) {
+  try {
+    const html    = await fetchHTML(venue.url);
+    const tiles   = venue.type === 'amg' ? parseAMG(html) : parseECE(html);
+    const outdN   = tiles.filter(t => t.status === 'outdated').length;
+    const expN    = tiles.filter(t => t.status === 'expiring_soon').length;
+    const overall = outdN > 0 ? 'outdated' : expN > 0 ? 'expiring_soon' : tiles.length ? 'ok' : 'unknown';
+    return { ...venue, tiles, outdN, expN, overall, error: null, checkedAt: new Date().toISOString() };
+  } catch (err) {
+    return { ...venue, tiles: [], outdN: 0, expN: 0, overall: 'error', error: err.message, checkedAt: new Date().toISOString() };
+  }
+}
+
+// Recalculate tile statuses with current warnDays (without re-fetching)
+function recalcStatus() {
+  Object.values(venueData).forEach(v => {
+    v.tiles.forEach(t => {
+      if (t.date) t.status = tileStatus(new Date(t.date));
+    });
+    v.outdN   = v.tiles.filter(t => t.status === 'outdated').length;
+    v.expN    = v.tiles.filter(t => t.status === 'expiring_soon').length;
+    v.overall = v.outdN > 0 ? 'outdated' : v.expN > 0 ? 'expiring_soon' : v.tiles.length ? 'ok' : 'unknown';
+  });
+}
+
+async function startScrape() {
+  if (isScraping) return;
+  isScraping = true;
+  document.getElementById('refresh-btn').disabled = true;
+  document.getElementById('scan-banner').classList.remove('hidden');
+  document.getElementById('err-banner').classList.add('hidden');
+
+  // Show skeleton cards immediately
+  showSkeletons();
+
+  let done = 0;
+  const updateMsg = () => {
+    document.getElementById('scan-msg').textContent = `Scanning venues… ${done}/${VENUES.length}`;
+  };
+  updateMsg();
+
+  // Fetch in batches of 4 to avoid hammering the proxy
+  for (let i = 0; i < VENUES.length; i += 4) {
+    const batch = VENUES.slice(i, i + 4);
+    const results = await Promise.all(batch.map(scrapeVenue));
+    results.forEach(r => { venueData[r.name] = r; });
+    done += results.length;
+    updateMsg();
+    renderAll();           // update incrementally as results arrive
+    if (i + 4 < VENUES.length) await sleep(300); // small pause between batches
+  }
+
+  const lastTs = new Date();
+  document.getElementById('ts').textContent = lastTs.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('scan-banner').classList.add('hidden');
+  document.getElementById('refresh-btn').disabled = false;
+  isScraping = false;
+
+  handleNotifications();
+  scheduleNext();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Render ─────────────────────────────────────────────────────────────────
+
+const STATUS_LABELS = {
+  outdated: 'Outdated', expiring_soon: 'Expiring Soon', ok: 'Up to Date',
+  error: 'Error', unknown: 'No tiles', loading: 'Checking…',
+};
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function buildTileHTML(t) {
+  const tag  = daysRelLabel(t.date);
+  return `<div class="tile ${t.status}">
+    <div class="dot"></div>
+    <div class="tile-info">
+      <div class="tile-artist" title="${esc(t.artist)}">${esc(t.artist)}</div>
+      <div class="tile-date">${esc(t.dateStr)}</div>
+    </div>
+    ${tag ? `<span class="tile-tag">${esc(tag)}</span>` : ''}
+  </div>`;
+}
+
+function buildCardHTML(v) {
+  if (v.overall === 'loading') {
+    return `<div class="card">
+      <div class="card-head">
+        <a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.name)}</a>
+        <span class="badge loading">Checking…</span>
+      </div>
+      <div class="tiles"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+    </div>`;
+  }
+  const body = v.error
+    ? `<p class="card-err">⚠ ${esc(v.error)}</p>`
+    : v.tiles.length
+      ? `<div class="tiles">${v.tiles.map(buildTileHTML).join('')}</div>`
+      : `<p class="card-err">No carousel tiles found.</p>`;
+
+  const foot = v.error ? '' : `<div class="card-foot">
+    ${v.tiles.length} tile${v.tiles.length !== 1 ? 's' : ''}
+    ${v.outdN ? `· <strong style="color:var(--red)">${v.outdN} outdated</strong>` : ''}
+    ${v.expN  ? `· <strong style="color:var(--orange)">${v.expN} expiring</strong>` : ''}
+    ${!v.outdN && !v.expN && v.tiles.length ? '· All clear' : ''}
+  </div>`;
+
+  return `<article class="card ${v.overall}">
+    <div class="card-head">
+      <a href="${esc(v.url)}" target="_blank" rel="noopener">${esc(v.name)}</a>
+      <span class="badge ${v.overall}">${STATUS_LABELS[v.overall] || v.overall}</span>
+    </div>
+    ${body}
+    ${foot}
+  </article>`;
+}
+
+function showSkeletons() {
+  // Insert skeleton for any venue not yet loaded
+  VENUES.forEach(v => {
+    if (!venueData[v.name]) venueData[v.name] = { ...v, overall: 'loading' };
+  });
+  renderAll();
+}
+
+function renderAll() {
+  const ORDER = { outdated: 0, expiring_soon: 1, ok: 2, unknown: 3, error: 4, loading: 5 };
+  const arr = Object.values(venueData);
+
+  // Update summary counts (only for completed venues)
+  const done = arr.filter(v => v.overall !== 'loading');
+  document.getElementById('n-out').textContent = done.filter(v => v.overall === 'outdated').length;
+  document.getElementById('n-exp').textContent = done.filter(v => v.overall === 'expiring_soon').length;
+  document.getElementById('n-ok').textContent  = done.filter(v => v.overall === 'ok').length;
+  document.getElementById('n-tot').textContent = VENUES.length;
+
+  const filtered = activeFilter === 'all' ? arr : arr.filter(v => v.overall === activeFilter);
+  filtered.sort((a, b) => (ORDER[a.overall] ?? 9) - (ORDER[b.overall] ?? 9));
+
+  const grid = document.getElementById('grid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="placeholder"><p>No venues match this filter.</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(buildCardHTML).join('');
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────
+
+async function toggleNotifications() {
+  if (notifGranted) return; // already on
+  const perm = await Notification.requestPermission();
+  notifGranted = perm === 'granted';
+  updateNotifBtn();
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById('notif-btn');
+  const lbl = document.getElementById('notif-label');
+  if (notifGranted) {
+    btn.classList.add('on');
+    lbl.textContent = 'Alerts On';
+  } else {
+    lbl.textContent = 'Enable Alerts';
+  }
+}
+
+function handleNotifications() {
+  const outdated = Object.values(venueData).filter(v => v.overall === 'outdated');
+
+  // Browser notifications for newly outdated
+  if (notifGranted) {
+    outdated.filter(v => !alertedSet.has(v.name)).forEach(v => {
+      alertedSet.add(v.name);
+      const tiles = v.tiles.filter(t => t.status === 'outdated');
+      new Notification(`Outdated tiles: ${v.name}`, {
+        body: tiles.map(t => `${t.artist} — ${t.dateStr}`).join('\n'),
+        tag:  v.name,
+      });
+    });
+  }
+
+  const { slackUrl, webhookUrl } = loadSettings();
+  const newlyOutdated = outdated.filter(v => !alertedSet.has(`sent_${v.name}`));
+  if (!newlyOutdated.length) return;
+
+  newlyOutdated.forEach(v => alertedSet.add(`sent_${v.name}`));
+
+  if (slackUrl) sendSlack(slackUrl, newlyOutdated);
+  if (webhookUrl) sendWebhook(webhookUrl, newlyOutdated);
+}
+
+async function sendSlack(url, venues) {
+  const blocks = venues.flatMap(v => {
+    const tiles = v.tiles.filter(t => t.status === 'outdated');
+    return [
+      { type: 'section', text: { type: 'mrkdwn', text: `*<${v.url}|${v.name}>* — ${tiles.length} outdated tile(s)` } },
+      { type: 'section', text: { type: 'mrkdwn', text: tiles.map(t => `• ${t.artist} — ~${t.dateStr}~`).join('\n') } },
+    ];
+  });
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `:rotating_light: ${venues.length} venue(s) have outdated homepage tiles`,
+        blocks: [{ type: 'header', text: { type: 'plain_text', text: 'Outdated Homepage Carousel Tiles' } }, ...blocks],
+      }),
+    });
+  } catch (_) {}
+}
+
+async function sendWebhook(url, venues) {
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event: 'outdated_tiles_detected',
+        timestamp: new Date().toISOString(),
+        venues: venues.map(v => ({ name: v.name, url: v.url, outdatedTiles: v.tiles.filter(t => t.status === 'outdated') })),
+      }),
+    });
+  } catch (_) {}
+}
+
+// ── Auto-refresh ───────────────────────────────────────────────────────────
+
+let refreshTimer;
+function scheduleNext() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(startScrape, 60 * 60 * 1000); // 1 hour
+}
+
+// ── Filters ─────────────────────────────────────────────────────────────────
+
+document.querySelectorAll('.filt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filt').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.f;
+    renderAll();
+  });
+});
+
+// ── Settings Modal ─────────────────────────────────────────────────────────
+
+function openSettings() {
+  const s = loadSettings();
+  document.getElementById('slack-url').value   = s.slackUrl;
+  document.getElementById('webhook-url').value = s.webhookUrl;
+  document.getElementById('warn-days').value   = s.warnDays;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function closeSettings() { document.getElementById('overlay').classList.add('hidden'); }
+function overlayClick(e) { if (e.target === document.getElementById('overlay')) closeSettings(); }
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+document.getElementById('proxy-label').textContent = 'Proxy: allorigins.win';
+updateNotifBtn();
+startScrape();
+</script>
+</body>
+</html>

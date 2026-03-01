@@ -1,42 +1,44 @@
 # Venue Carousel Tracker
 
-A web dashboard that monitors homepage carousel tiles across all O2 Academy venues and Edinburgh Corn Exchange, alerting the team when tiles are outdated and need replacing.
+A single HTML file that monitors homepage carousel tiles across all 20 O2 Academy venues and Edinburgh Corn Exchange, alerting the team when tiles are outdated and need replacing.
+
+## Usage
+
+**Just open `index.html` in any browser.** No server, no install, no dependencies.
+
+The page will immediately start scanning all 20 venues and update in real time as results come in. It re-checks automatically every hour.
 
 ## What It Does
 
-- Scrapes the homepage of all 20 venues every hour
-- Detects carousel tiles where the event date has **already passed** (outdated) or is **within 7 days** (expiring soon)
-- Displays a live dashboard with colour-coded status for each venue and tile
-- Sends alerts via **email**, **Slack**, and/or a **generic webhook** when new outdated tiles are found
-- Shows **browser desktop notifications** when the dashboard is open
+- Fetches each venue homepage via a public CORS proxy (allorigins.win)
+- Detects carousel tiles where the event date has **already passed** (outdated) or is within the warning threshold (default: **7 days**)
+- Displays a colour-coded dashboard for all venues and their tiles
+- Sends **browser desktop notifications** when tiles go outdated (click Enable Alerts)
+- Posts to **Slack** and/or a **generic webhook** (configurable in Settings)
 
-## Setup
+## Status Indicators
 
-### 1. Install dependencies
+| Colour | Meaning |
+|---|---|
+| 🔴 Red — Outdated | Event date has passed — tile needs replacing immediately |
+| 🟠 Orange — Expiring Soon | Event is within the warning threshold (default 7 days) |
+| 🟢 Green — OK | Event date is comfortably in the future |
 
-```bash
-npm install
-```
+## Notifications
 
-### 2. Configure notifications (optional)
+Click **Settings** (top-right) to configure:
 
-```bash
-cp .env.example .env
-```
+| Channel | What you need |
+|---|---|
+| Browser alerts | Click "Enable Alerts" — shows desktop notifications |
+| Slack | An Incoming Webhook URL from api.slack.com/messaging/webhooks |
+| Generic webhook | Any HTTPS endpoint that accepts a JSON POST |
 
-Edit `.env` with your SMTP / Slack / webhook details. All notification channels are optional — leave them blank to disable.
-
-### 3. Start the server
-
-```bash
-npm start
-```
-
-Open **http://localhost:3000** in your browser.
+Settings are saved in your browser's localStorage.
 
 ## Venues Tracked
 
-| Venue | URL |
+| Venue | Site |
 |---|---|
 | O2 Academy Birmingham | academymusicgroup.com/o2academybirmingham |
 | O2 Academy Bournemouth | academymusicgroup.com/o2academybournemouth |
@@ -59,28 +61,8 @@ Open **http://localhost:3000** in your browser.
 | O2 Victoria Warehouse Manchester | academymusicgroup.com/o2victoriawarehousemanchester |
 | Edinburgh Corn Exchange | edinburghcornexchange.co.uk |
 
-## Status Indicators
+## Notes
 
-| Colour | Meaning |
-|---|---|
-| 🔴 Red | Event date has passed — tile needs replacing immediately |
-| 🟠 Orange | Event is within 7 days — tile will need replacing soon |
-| 🟢 Green | Event is more than 7 days away — tile is fine |
-
-## API
-
-| Endpoint | Description |
-|---|---|
-| `GET /api/status` | Returns current venue data and last checked time |
-| `POST /api/refresh` | Triggers an immediate scrape of all venues |
-| `GET /api/events` | Server-Sent Events stream for real-time dashboard updates |
-
-## Notifications
-
-When a venue's carousel tiles become outdated, the server automatically sends alerts via any configured channel:
-
-- **Email** — uses nodemailer with any SMTP provider (Gmail, SendGrid, etc.)
-- **Slack** — via Incoming Webhook
-- **Generic Webhook** — HTTP POST with JSON payload
-
-Alerts are only sent when a venue *newly* becomes outdated (not on every hourly check).
+- Pages are fetched via [allorigins.win](https://allorigins.win), a free public CORS proxy. Occasional fetch errors are normal — use Refresh to retry.
+- Browser notifications and webhook alerts only fire when a venue *newly* becomes outdated, not on every hourly check.
+- The warning threshold (default 7 days) can be changed in Settings.
