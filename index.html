@@ -536,17 +536,36 @@ async function fetchHTML(url) {
 }
 
 function parseAMG(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const tiles = []; const seen = new Set();
-  doc.querySelectorAll('[data-testid="carousel-slide"]').forEach(slide => {
-    const artist  = (slide.querySelector('h2,h3') || {}).textContent?.trim() || '';
-    const dateStr = (slide.querySelector('p')     || {}).textContent?.trim() || '';
+  const doc  = new DOMParser().parseFromString(html, 'text/html');
+  const tiles = [];
+  const seen  = new Set();
+
+  function addTile(artist, dateStr) {
     if (!artist) return;
-    const key = `${artist}|${dateStr}`;
-    if (seen.has(key)) return; seen.add(key);
+    const key = artist + '|' + dateStr;
+    if (seen.has(key)) return;
+    seen.add(key);
     const date = parseDate(dateStr);
     tiles.push({ artist, dateStr, date: date?.toISOString() || null, status: tileStatus(date) });
+  }
+
+  // 1. Featured carousel at the top
+  doc.querySelectorAll('[data-testid="carousel-slide"]').forEach(slide => {
+    addTile(
+      (slide.querySelector('h2,h3') || {}).textContent?.trim() || '',
+      (slide.querySelector('p')     || {}).textContent?.trim() || '',
+    );
   });
+
+  // 2. Content-list sections (large / medium / small) — same structure as ECE.
+  //    Require a parseable date to skip navigation/info links that share the selector.
+  doc.querySelectorAll('[data-testid="module-content-list-item"]').forEach(item => {
+    const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
+    const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
+    if (!parseDate(dateStr)) return;
+    addTile(artist, dateStr);
+  });
+
   return tiles;
 }
 
