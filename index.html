@@ -312,7 +312,7 @@
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
   <span id="err-msg"></span>
 </div>
-<p class="proxy-note">Pages are fetched via a public CORS proxy. If a venue shows an error, try refreshing — transient proxy failures are normal.</p>
+<p class="proxy-note">Pages are fetched via public CORS proxies (corsproxy.io → allorigins → codetabs). Each venue tries all three in order — errors mean all proxies failed for that site. Try <strong>Refresh</strong> or add a custom proxy in <strong>Settings</strong>.</p>
 
 <!-- ── Filters ─────────────────────────────────────────────────────── -->
 <div class="filters">
@@ -347,6 +347,12 @@
       <label>Generic Webhook URL <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
       <input type="url" id="webhook-url" placeholder="https://your-server.com/webhook" />
       <p class="hint">Receives a JSON POST: <code>{ event, timestamp, venues[] }</code></p>
+    </div>
+
+    <div class="field">
+      <label>Custom CORS Proxy URL <span style="font-weight:400;color:var(--text-muted)">(optional — tried first)</span></label>
+      <input type="url" id="custom-proxy" placeholder="https://your-proxy.example.com/?url=" />
+      <p class="hint">Must append the encoded target URL. Leave blank to use the built-in proxies (corsproxy.io → allorigins → codetabs).</p>
     </div>
 
     <div class="field">
@@ -405,29 +411,53 @@ let isScraping   = false;
 let notifGranted = Notification.permission === 'granted';
 let alertedSet   = new Set();  // venues already notified this session
 
-const PROXY = 'https://api.allorigins.win/raw?url=';
+// Ordered list of CORS proxies — tried in sequence until one succeeds
+const PROXY_LIST = [
+  {
+    name: 'corsproxy.io',
+    wrap:   url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    unwrap: res => res.text(),
+  },
+  {
+    name: 'allorigins',
+    wrap:   url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    unwrap: res => res.json().then(d => { if (!d || !d.contents) throw new Error('empty'); return d.contents; }),
+  },
+  {
+    name: 'codetabs',
+    wrap:   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+    unwrap: res => res.text(),
+  },
+];
 
 // ── Settings ────────────────────────────────────────────────────────────────
 
 function loadSettings() {
   return {
-    slackUrl:   localStorage.getItem('slackUrl')   || '',
-    webhookUrl: localStorage.getItem('webhookUrl') || '',
-    warnDays:   parseInt(localStorage.getItem('warnDays') || '7'),
+    slackUrl:    localStorage.getItem('slackUrl')    || '',
+    webhookUrl:  localStorage.getItem('webhookUrl')  || '',
+    warnDays:    parseInt(localStorage.getItem('warnDays') || '7'),
+    customProxy: localStorage.getItem('customProxy') || '',
   };
 }
 
+function getProxies() {
+  const custom = (localStorage.getItem('customProxy') || '').trim();
+  if (!custom) return PROXY_LIST;
+  return [
+    { name: 'custom', wrap: url => `${custom}${encodeURIComponent(url)}`, unwrap: res => res.text() },
+    ...PROXY_LIST,
+  ];
+}
+
 function saveSettings() {
-  localStorage.setItem('slackUrl',   document.getElementById('slack-url').value.trim());
-  localStorage.setItem('webhookUrl', document.getElementById('webhook-url').value.trim());
+  localStorage.setItem('slackUrl',    document.getElementById('slack-url').value.trim());
+  localStorage.setItem('webhookUrl',  document.getElementById('webhook-url').value.trim());
+  localStorage.setItem('customProxy', document.getElementById('custom-proxy').value.trim());
   const d = parseInt(document.getElementById('warn-days').value) || 7;
   localStorage.setItem('warnDays', d);
   closeSettings();
-  // Re-render with new threshold
-  if (Object.keys(venueData).length) {
-    recalcStatus();
-    renderAll();
-  }
+  if (Object.keys(venueData).length) { recalcStatus(); renderAll(); }
 }
 
 // ── Date Parsing ─────────────────────────────────────────────────────────────
@@ -475,12 +505,34 @@ function daysRelLabel(isoDate) {
 
 // ── Scraping ─────────────────────────────────────────────────────────────────
 
+async function fetchWithTimeout(url, ms) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function fetchHTML(url) {
-  const res = await fetch(PROXY + encodeURIComponent(url), { cache: 'no-store' });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  if (!text || text.length < 500) throw new Error('Empty or truncated response');
-  return text;
+  const proxies = getProxies();
+  const errors  = [];
+
+  for (const proxy of proxies) {
+    try {
+      const res = await fetchWithTimeout(proxy.wrap(url), 18000);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await proxy.unwrap(res);
+      if (!text || text.length < 500) throw new Error('Empty response');
+      return text;
+    } catch (err) {
+      const msg = err.name === 'AbortError' ? 'timeout' : err.message;
+      errors.push(`${proxy.name}: ${msg}`);
+    }
+  }
+
+  throw new Error(errors.join(' · '));
 }
 
 function parseAMG(html) {
@@ -767,9 +819,10 @@ document.querySelectorAll('.filt').forEach(btn => {
 
 function openSettings() {
   const s = loadSettings();
-  document.getElementById('slack-url').value   = s.slackUrl;
-  document.getElementById('webhook-url').value = s.webhookUrl;
-  document.getElementById('warn-days').value   = s.warnDays;
+  document.getElementById('slack-url').value    = s.slackUrl;
+  document.getElementById('webhook-url').value  = s.webhookUrl;
+  document.getElementById('custom-proxy').value = s.customProxy;
+  document.getElementById('warn-days').value    = s.warnDays;
   document.getElementById('overlay').classList.remove('hidden');
 }
 function closeSettings() { document.getElementById('overlay').classList.add('hidden'); }
@@ -777,7 +830,7 @@ function overlayClick(e) { if (e.target === document.getElementById('overlay')) 
 
 // ── Init ───────────────────────────────────────────────────────────────────
 
-document.getElementById('proxy-label').textContent = 'Proxy: allorigins.win';
+document.getElementById('proxy-label').textContent = 'Proxies: corsproxy.io, allorigins, codetabs';
 updateNotifBtn();
 startScrape();
 </script>
