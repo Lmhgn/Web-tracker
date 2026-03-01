@@ -718,10 +718,33 @@ async function fetchHTML(url) {
   throw new Error(errors.join(' · '));
 }
 
+// "What's New" and "Coming up" are automatic content feeds — not manually
+// maintained carousel tiles — so they must be excluded from scraping.
+// This regex matches both section names with straight and curly apostrophes.
+const EXCLUDED_SECTION_RE = /what[\u2018\u2019\u0027]s\s+new|coming\s+up/i;
+
+// Walk up from each matching heading and mark every module-content-list-item
+// inside its containing section as excluded.  Works regardless of whether the
+// heading is inside the module element or a preceding sibling/ancestor.
+function buildExcludedItems(doc) {
+  const excluded = new Set();
+  doc.querySelectorAll('h1,h2,h3,h4').forEach(heading => {
+    if (!EXCLUDED_SECTION_RE.test(heading.textContent)) return;
+    let el = heading.parentElement;
+    for (let depth = 0; depth < 6 && el; depth++) {
+      const items = el.querySelectorAll('[data-testid="module-content-list-item"]');
+      if (items.length) { items.forEach(i => excluded.add(i)); break; }
+      el = el.parentElement;
+    }
+  });
+  return excluded;
+}
+
 function parseAMG(html) {
-  const doc   = new DOMParser().parseFromString(html, 'text/html');
-  const tiles = [];
-  const seen  = new Set();
+  const doc      = new DOMParser().parseFromString(html, 'text/html');
+  const tiles    = [];
+  const seen     = new Set();
+  const excluded = buildExcludedItems(doc);
 
   function addTile(artist, dateStr) {
     if (!artist) return;
@@ -742,7 +765,9 @@ function parseAMG(html) {
 
   // 2. Content-list sections (large / medium / small).
   //    Require a parseable date to skip navigation/info links sharing the selector.
+  //    Skip any item that belongs to an excluded auto-feed section.
   doc.querySelectorAll('[data-testid="module-content-list-item"]').forEach(item => {
+    if (excluded.has(item)) return;
     const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
     const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
     if (!parseDate(dateStr)) return;
@@ -753,11 +778,14 @@ function parseAMG(html) {
 }
 
 function parseECE(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const tiles = []; const seen = new Set();
-  const first = doc.querySelector('[data-testid="module-content-list-medium"]');
+  const doc      = new DOMParser().parseFromString(html, 'text/html');
+  const tiles    = [];
+  const seen     = new Set();
+  const excluded = buildExcludedItems(doc);
+  const first    = doc.querySelector('[data-testid="module-content-list-medium"]');
   if (!first) return tiles;
   first.querySelectorAll('[data-testid="module-content-list-item"]').forEach(item => {
+    if (excluded.has(item)) return;
     const artist  = item.querySelector('[data-testid="module-content-list-item-title"]')?.textContent?.trim()    || '';
     const dateStr = item.querySelector('[data-testid="module-content-list-item-subtitle"]')?.textContent?.trim() || '';
     if (!artist) return;
