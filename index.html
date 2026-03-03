@@ -358,22 +358,177 @@
       .header-right { width: 100%; justify-content: flex-end; }
       .search-wrap { max-width: 100%; width: 100%; }
     }
+
+    /* ── Login Overlay ── */
+    .login-overlay {
+      position: fixed; inset: 0; background: var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; padding: 1rem;
+    }
+    .login-box {
+      background: var(--surface); border-radius: 16px; width: 100%;
+      max-width: 380px; overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,.5);
+    }
+    .login-head {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #fff; padding: 1.75rem; text-align: center;
+    }
+    .login-head h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: -.02em; }
+    .login-head p  { font-size: 0.8rem; color: #94a3b8; margin-top: 0.3rem; }
+    .login-body    { padding: 1.75rem; }
+    .login-error {
+      background: var(--red-light); border: 1px solid var(--red-border);
+      color: var(--red); font-size: 0.8rem; padding: 0.5rem 0.75rem;
+      border-radius: 8px; margin-bottom: 1rem;
+    }
+
+    /* ── User Pill ── */
+    .user-pill {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-size: 0.78rem; color: #cbd5e1; padding-left: 0.2rem;
+    }
+    .user-pill .uname { font-weight: 600; color: #e2e8f0; }
+    .user-pill .urole {
+      font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+      padding: 0.08rem 0.35rem; border-radius: 10px; letter-spacing: .05em;
+      background: rgba(255,255,255,.12); color: #94a3b8;
+    }
+    .user-pill .upw  { background: none; border: none; color: #64748b; font-size: 0.72rem; cursor: pointer; text-decoration: underline; padding: 0; }
+    .user-pill .upw:hover { color: #94a3b8; }
+    .user-pill .uout { background: none; border: none; color: #f87171; font-size: 0.72rem; cursor: pointer; text-decoration: underline; padding: 0; }
+    .user-pill .uout:hover { color: #fca5a5; }
+    .btn-ghost.admin-btn { background: rgba(251,191,36,.15); border-color: rgba(251,191,36,.3); color: #fcd34d; }
+    .btn-ghost.admin-btn:hover { background: rgba(251,191,36,.25); }
+
+    /* ── Catalogue View ── */
+    #catalogue-view { padding: 1.1rem 1.75rem 2rem; flex: 1; }
+    .cat-toolbar { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .cat-search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 420px; }
+    .cat-search-wrap svg { position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .cat-search {
+      width: 100%; padding: 0.42rem 0.75rem 0.42rem 2.1rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-size: 0.85rem; outline: none; transition: border-color .15s;
+      background: var(--surface); color: var(--text);
+    }
+    .cat-search:focus { border-color: #3b82f6; }
+    .cat-count { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+
+    .cat-wrap { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .cat-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .cat-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--text-muted);
+      padding: 0.65rem 0.9rem; border-bottom: 2px solid var(--border);
+      background: var(--gray-light); white-space: nowrap;
+    }
+    .cat-row { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-row:hover { background: #f0f7ff; }
+    .cat-row td { padding: 0.6rem 0.9rem; vertical-align: middle; }
+    .cat-artist { font-weight: 600; }
+    .cat-artist mark { background: #fef08a; border-radius: 2px; padding: 0 1px; font-weight: inherit; font-style: normal; }
+    .cat-meta   { color: var(--text-muted); font-size: 0.78rem; }
+    .cat-date   { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+    .cat-dur    { font-size: 0.78rem; font-weight: 600; color: #374151; white-space: nowrap; }
+    .cat-scans  { font-size: 0.75rem; color: var(--text-muted); text-align: right; }
+
+    /* Artist detail */
+    .detail-back {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.82rem; font-weight: 600; color: var(--blue);
+      cursor: pointer; margin-bottom: 1rem; background: none; border: none; padding: 0;
+    }
+    .detail-back:hover { text-decoration: underline; }
+    .detail-hero {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+      box-shadow: var(--shadow); border-left: 4px solid var(--navy);
+    }
+    .detail-hero h2 { font-size: 1.4rem; font-weight: 800; }
+    .detail-hero-meta {
+      font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;
+      display: flex; gap: 1.25rem; flex-wrap: wrap;
+    }
+    .detail-wrap { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .detail-table th {
+      text-align: left; font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--text-muted);
+      padding: 0.65rem 0.9rem; border-bottom: 2px solid var(--border);
+      background: var(--gray-light); white-space: nowrap;
+    }
+    .detail-table td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .detail-table tr:last-child td { border-bottom: none; }
+    .detail-venue a { color: var(--blue); text-decoration: none; font-weight: 600; }
+    .detail-venue a:hover { text-decoration: underline; }
+    .dur-bar  { height: 5px; background: var(--blue-light); border-radius: 3px; margin-top: 4px; overflow: hidden; min-width: 60px; }
+    .dur-fill { height: 100%; background: var(--blue); border-radius: 3px; }
+
+    /* ── Users Modal ── */
+    .users-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 1.25rem; }
+    .users-table th { text-align: left; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); padding: 0.4rem 0.6rem; border-bottom: 2px solid var(--border); }
+    .users-table td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .users-table tr:last-child td { border-bottom: none; }
+    .role-badge { font-size: 0.65rem; font-weight: 700; padding: 0.12rem 0.45rem; border-radius: 20px; text-transform: uppercase; letter-spacing: .05em; }
+    .role-badge.admin { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .role-badge.user  { background: var(--gray-light); color: var(--gray); border: 1px solid var(--gray-border); }
+    .btn-link { background: none; border: none; color: var(--blue); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0 0.2rem; }
+    .btn-link:hover { color: #1d4ed8; }
+    .btn-link.danger { color: var(--red); }
+    .btn-link.danger:hover { color: #b91c1c; }
+    .add-user-section { border-top: 1px solid var(--border); padding-top: 1.1rem; margin-top: 0.25rem; }
+    .add-user-section h3 { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.85rem; }
+    .add-user-grid { display: grid; grid-template-columns: 1fr 1fr 110px; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .field-error {
+      background: var(--red-light); border: 1px solid var(--red-border);
+      color: var(--red); font-size: 0.78rem; padding: 0.4rem 0.65rem;
+      border-radius: 6px; margin-top: 0.6rem;
+    }
   </style>
 </head>
 <body>
+
+<!-- ── Login Overlay ────────────────────────────────────────────────── -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-head">
+      <h2>Venue Carousel Tracker</h2>
+      <p>Sign in to continue</p>
+    </div>
+    <div class="login-body">
+      <div id="login-error" class="login-error hidden"></div>
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="login-username" autocomplete="username" placeholder="Enter username" />
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="Enter password" />
+      </div>
+      <button class="btn btn-blue" id="login-btn" onclick="doLogin()" style="width:100%;justify-content:center;margin-top:.25rem">
+        Sign In
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main App (hidden until authenticated) ────────────────────────── -->
+<div id="app" class="hidden" style="display:contents">
 
 <!-- ── Header ─────────────────────────────────────────────────────── -->
 <header class="header">
   <div>
     <h1>Venue Carousel Tracker</h1>
-    <p class="header-sub" id="header-sub">Homepage tile monitor · 20 venues</p>
+    <p class="header-sub" id="header-sub">Homepage tile monitor · 20 venues · server scraping</p>
   </div>
   <div class="header-right">
     <div class="last-checked">
       <span class="lbl">Last checked</span>
       <span class="val" id="ts">—</span>
     </div>
-    <button class="btn btn-blue" id="refresh-btn" onclick="startScrape()">
+    <button class="btn btn-blue" id="refresh-btn" onclick="triggerRefresh()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       Refresh
     </button>
@@ -385,10 +540,21 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notif-label">Enable Alerts</span>
     </button>
+    <button class="btn btn-ghost admin-btn hidden" id="users-btn" onclick="openUsersModal()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Users
+    </button>
     <button class="btn btn-ghost" onclick="openSettings()">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Settings
     </button>
+    <div class="user-pill" id="user-pill">
+      <span class="uname" id="user-name"></span>
+      <span class="urole" id="user-role"></span>
+      <button class="upw" onclick="openChangePassword()">Change pw</button>
+      <span style="color:#334155">·</span>
+      <button class="uout" onclick="doLogout()">Sign out</button>
+    </div>
   </div>
 </header>
 
@@ -410,8 +576,6 @@
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
   <span id="err-msg"></span>
 </div>
-<p class="proxy-note">Pages are fetched via public CORS proxies (corsproxy.io → allorigins → codetabs). Each venue tries all three in order — errors mean all proxies failed for that site. Try <strong>Refresh</strong> or add a custom proxy in <strong>Settings</strong>.</p>
-
 <!-- ── Controls Bar ────────────────────────────────────────────────── -->
 <div class="controls">
   <div class="filt-group">
@@ -428,6 +592,7 @@
   <div class="view-tabs">
     <button class="view-tab active" data-v="cards">Cards</button>
     <button class="view-tab" data-v="events">Events</button>
+    <button class="view-tab" data-v="catalogue">Catalogue</button>
   </div>
 </div>
 
@@ -441,12 +606,26 @@
   <div class="placeholder"><div class="spin dark lg"></div><p>Loading…</p></div>
 </div>
 
+<!-- ── Catalogue View ─────────────────────────────────────────────── -->
+<div id="catalogue-view" class="hidden">
+  <div class="cat-toolbar">
+    <div class="cat-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="cat-search" class="cat-search" placeholder="Search artists…" />
+    </div>
+    <span class="cat-count" id="cat-count"></span>
+  </div>
+  <div id="cat-body">
+    <div class="placeholder"><div class="spin dark lg"></div><p>Loading catalogue…</p></div>
+  </div>
+</div>
+
 <!-- ── Settings Modal ────────────────────────────────────────────── -->
 <div class="overlay hidden" id="overlay" onclick="overlayClick(event)">
   <div class="modal">
     <h2>Settings</h2>
     <p class="modal-desc">
-      Configure alerts, refresh schedule, and proxy options. All settings are saved in your browser.
+      Configure the warning threshold and auto-refresh schedule. Settings are saved in your browser.
     </p>
 
     <div class="field">
@@ -463,25 +642,7 @@
     <div class="field">
       <label>Warning threshold — flag tiles expiring within</label>
       <input type="number" id="warn-days" min="1" max="30" placeholder="7" style="width:80px" />
-      <p class="hint">days (default: 7)</p>
-    </div>
-
-    <div class="field">
-      <label>Slack Incoming Webhook URL</label>
-      <input type="url" id="slack-url" placeholder="https://hooks.slack.com/services/…" />
-      <p class="hint">A message is posted when new outdated tiles are found.</p>
-    </div>
-
-    <div class="field">
-      <label>Generic Webhook URL <span style="font-weight:400;color:var(--text-muted)">(optional)</span></label>
-      <input type="url" id="webhook-url" placeholder="https://your-server.com/webhook" />
-      <p class="hint">Receives a JSON POST: <code>{ event, timestamp, venues[] }</code></p>
-    </div>
-
-    <div class="field">
-      <label>Custom CORS Proxy URL <span style="font-weight:400;color:var(--text-muted)">(optional — tried first)</span></label>
-      <input type="url" id="custom-proxy" placeholder="https://your-proxy.example.com/?url=" />
-      <p class="hint">Must append the encoded target URL. Leave blank to use the built-in proxies (corsproxy.io → allorigins → codetabs).</p>
+      <p class="hint">days (default: 7). Email/Slack notifications are configured via server .env</p>
     </div>
 
     <div class="modal-actions">
@@ -491,110 +652,436 @@
   </div>
 </div>
 
+<!-- ── Users Modal ────────────────────────────────────────────────── -->
+<div class="overlay hidden" id="users-overlay" onclick="if(event.target===this)closeUsersModal()">
+  <div class="modal" style="max-width:640px">
+    <h2>User Management</h2>
+    <p class="modal-desc">Manage who can access this tool.</p>
+
+    <table class="users-table">
+      <thead><tr><th>Username</th><th>Role</th><th>Last Login</th><th>Actions</th></tr></thead>
+      <tbody id="users-tbody"><tr><td colspan="4" style="color:var(--text-muted)">Loading…</td></tr></tbody>
+    </table>
+
+    <div class="add-user-section">
+      <h3>Add User</h3>
+      <div class="add-user-grid">
+        <input type="text"     id="new-username" placeholder="Username"   class="field input" style="padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;outline:none" />
+        <input type="password" id="new-password" placeholder="Password (min 6)" class="field input" style="padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;outline:none" />
+        <select id="new-role" style="padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-size:.85rem;cursor:pointer;outline:none">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div id="add-user-error" class="field-error hidden"></div>
+      <button class="btn btn-dark" onclick="addUser()" style="margin-top:.5rem">Add User</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeUsersModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Change Password Modal ──────────────────────────────────────── -->
+<div class="overlay hidden" id="chpw-overlay" onclick="if(event.target===this)closeChangePassword()">
+  <div class="modal" style="max-width:400px">
+    <h2>Change Password</h2>
+    <div id="chpw-error" class="field-error hidden"></div>
+    <div class="field">
+      <label>Current Password</label>
+      <input type="password" id="chpw-current" autocomplete="current-password" />
+    </div>
+    <div class="field">
+      <label>New Password</label>
+      <input type="password" id="chpw-new" autocomplete="new-password" />
+    </div>
+    <div class="field">
+      <label>Confirm New Password</label>
+      <input type="password" id="chpw-confirm" autocomplete="new-password" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeChangePassword()">Cancel</button>
+      <button class="btn btn-dark" onclick="saveChangePassword()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Footer ─────────────────────────────────────────────────────── -->
 <footer class="footer">
-  <span id="footer-refresh-label">Auto-refreshes every hour</span>
+  <span id="footer-refresh-label">Auto-refresh off</span>
   <span>·</span>
   <button onclick="openSettings()">Settings</button>
   <span>·</span>
   <button onclick="exportCSV()">Export CSV</button>
-  <span>·</span>
-  <span id="proxy-label" style="color:var(--text-muted)"></span>
 </footer>
 
+</div><!-- /#app -->
+
 <script>
-// ── Venues ─────────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────
 
-const VENUES = [
-  { name: 'O2 Academy Birmingham',            url: 'https://www.academymusicgroup.com/o2academybirmingham',           type: 'amg' },
-  { name: 'O2 Academy Bournemouth',           url: 'https://www.academymusicgroup.com/o2academybournemouth',          type: 'amg' },
-  { name: 'O2 Academy Bristol',               url: 'https://www.academymusicgroup.com/o2academybristol',              type: 'amg' },
-  { name: 'O2 Academy Brixton',               url: 'https://www.academymusicgroup.com/o2academybrixton',              type: 'amg' },
-  { name: 'O2 Academy Glasgow',               url: 'https://www.academymusicgroup.com/o2academyglasgow',              type: 'amg' },
-  { name: 'O2 Academy Islington',             url: 'https://www.academymusicgroup.com/o2academyislington',            type: 'amg' },
-  { name: 'O2 Academy Leeds',                 url: 'https://www.academymusicgroup.com/o2academyleeds',                type: 'amg' },
-  { name: 'O2 Academy Leicester',             url: 'https://www.academymusicgroup.com/o2academyleicester',            type: 'amg' },
-  { name: 'O2 Academy Liverpool',             url: 'https://www.academymusicgroup.com/o2academyliverpool',            type: 'amg' },
-  { name: 'O2 Academy Oxford',                url: 'https://www.academymusicgroup.com/o2academyoxford',               type: 'amg' },
-  { name: 'O2 Academy Sheffield',             url: 'https://www.academymusicgroup.com/o2academysheffield',            type: 'amg' },
-  { name: 'O2 Apollo Manchester',             url: 'https://www.academymusicgroup.com/o2apollomanchester',            type: 'amg' },
-  { name: 'O2 City Hall Newcastle',           url: 'https://www.academymusicgroup.com/o2cityhallnewcastle',           type: 'amg' },
-  { name: 'O2 Forum Kentish Town',            url: 'https://www.academymusicgroup.com/o2forumkentishtown',            type: 'amg' },
-  { name: 'O2 Guildhall Southampton',         url: 'https://www.academymusicgroup.com/o2guildhallsouthampton',        type: 'amg' },
-  { name: 'O2 Institute Birmingham',          url: 'https://www.academymusicgroup.com/o2institutebirmingham',         type: 'amg' },
-  { name: 'O2 Ritz Manchester',               url: 'https://www.academymusicgroup.com/o2ritzmanchester',              type: 'amg' },
-  { name: "O2 Shepherd's Bush Empire",        url: 'https://www.academymusicgroup.com/o2shepherdsbushempire',         type: 'amg' },
-  { name: 'O2 Victoria Warehouse Manchester', url: 'https://www.academymusicgroup.com/o2victoriawarehousemanchester', type: 'amg' },
-  { name: 'Edinburgh Corn Exchange',          url: 'https://www.edinburghcornexchange.co.uk',                         type: 'ece' },
-];
+let currentUser       = null;
+let sseSource         = null;
+let venueData         = {};
+let activeFilter      = 'all';
+let activeView        = 'cards';
+let searchQuery       = '';
+let isScraping        = false;
+let notifGranted      = Notification.permission === 'granted';
+let alertedSet        = new Set();
+let prevScan          = {};
+let refreshTimer      = null;
+let catalogueData     = [];
+let catQuery          = '';
+let catSelectedArtist = null;
 
-// ── State ───────────────────────────────────────────────────────────────────
+// ── API Helper ────────────────────────────────────────────────────────────────
 
-let venueData    = {};        // name → venue result
-let activeFilter = 'all';
-let activeView   = 'cards';   // 'cards' | 'events'
-let searchQuery  = '';
-let isScraping   = false;
-let notifGranted = Notification.permission === 'granted';
-let alertedSet   = new Set();
-let prevScan     = {};        // name → Set<"artist|dateStr"> — loaded from localStorage
-let refreshTimer = null;
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res  = await fetch(path, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(data.error || 'Request failed'), { status: res.status });
+  return data;
+}
 
-// ── CORS Proxy list ──────────────────────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────────────────────────
 
-const PROXY_LIST = [
-  {
-    name: 'corsproxy.io',
-    wrap:   url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-    unwrap: res => res.text(),
-  },
-  {
-    name: 'allorigins',
-    wrap:   url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-    unwrap: res => res.json().then(d => { if (!d || !d.contents) throw new Error('empty'); return d.contents; }),
-  },
-  {
-    name: 'codetabs',
-    wrap:   url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-    unwrap: res => res.text(),
-  },
-];
+function showLogin(msg) {
+  if (msg) {
+    const e = document.getElementById('login-error');
+    e.textContent = msg;
+    e.classList.remove('hidden');
+  }
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+  if (sseSource) { sseSource.close(); sseSource = null; }
+}
 
-// ── Settings ────────────────────────────────────────────────────────────────
+function onAuthenticated(user) {
+  currentUser = user;
+  document.getElementById('login-overlay').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('user-name').textContent = user.username;
+  document.getElementById('user-role').textContent = user.role;
+  if (user.role === 'admin') document.getElementById('users-btn').classList.remove('hidden');
+  connectSSE();
+}
 
-function loadSettings() {
-  return {
-    slackUrl:        localStorage.getItem('slackUrl')        || '',
-    webhookUrl:      localStorage.getItem('webhookUrl')      || '',
-    warnDays:        parseInt(localStorage.getItem('warnDays') || '7'),
-    customProxy:     localStorage.getItem('customProxy')     || '',
-    refreshInterval: localStorage.getItem('refreshInterval') || '60',
+async function initApp() {
+  try {
+    const user = await api('GET', '/api/auth/me');
+    onAuthenticated(user);
+  } catch {
+    showLogin();
+    document.getElementById('login-username').focus();
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const btn = document.getElementById('login-btn');
+  if (!username || !password) return;
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    const user = await api('POST', '/api/auth/login', { username, password });
+    document.getElementById('login-error').classList.add('hidden');
+    onAuthenticated(user);
+  } catch (err) {
+    const e = document.getElementById('login-error');
+    e.textContent = err.message || 'Login failed';
+    e.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+async function doLogout() {
+  await api('POST', '/api/auth/logout').catch(() => {});
+  currentUser = null;
+  venueData   = {};
+  showLogin();
+}
+
+// ── Change Password ───────────────────────────────────────────────────────────
+
+function openChangePassword() {
+  document.getElementById('chpw-overlay').classList.remove('hidden');
+  document.getElementById('chpw-error').classList.add('hidden');
+  document.getElementById('chpw-current').value = '';
+  document.getElementById('chpw-new').value     = '';
+  document.getElementById('chpw-confirm').value = '';
+}
+
+function closeChangePassword() { document.getElementById('chpw-overlay').classList.add('hidden'); }
+
+async function saveChangePassword() {
+  const cur  = document.getElementById('chpw-current').value;
+  const nw   = document.getElementById('chpw-new').value;
+  const conf = document.getElementById('chpw-confirm').value;
+  const err  = document.getElementById('chpw-error');
+  if (!cur || !nw || !conf) { err.textContent = 'All fields required'; err.classList.remove('hidden'); return; }
+  if (nw !== conf)           { err.textContent = 'Passwords do not match'; err.classList.remove('hidden'); return; }
+  if (nw.length < 6)         { err.textContent = 'Min 6 characters'; err.classList.remove('hidden'); return; }
+  try {
+    await api('POST', '/api/auth/change-password', { currentPassword: cur, newPassword: nw });
+    closeChangePassword();
+  } catch (e) {
+    err.textContent = e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+// ── Users Modal ───────────────────────────────────────────────────────────────
+
+function openUsersModal() {
+  document.getElementById('users-overlay').classList.remove('hidden');
+  document.getElementById('add-user-error').classList.add('hidden');
+  refreshUsersList();
+}
+
+function closeUsersModal() { document.getElementById('users-overlay').classList.add('hidden'); }
+
+async function refreshUsersList() {
+  try {
+    const users = await api('GET', '/api/users');
+    document.getElementById('users-tbody').innerHTML = users.map(u => `<tr>
+      <td>${esc(u.username)}</td>
+      <td><span class="role-badge ${u.role}">${u.role}</span></td>
+      <td>${u.last_login ? new Date(u.last_login).toLocaleDateString('en-GB') : '—'}</td>
+      <td>
+        <button class="btn-link" onclick="promptResetPassword(${u.id},'${esc(u.username).replace(/'/g,"\\'")}')">Reset pw</button>
+        ${u.id !== currentUser?.id ? `<button class="btn-link danger" onclick="deleteUser(${u.id},'${esc(u.username).replace(/'/g,"\\'")}')">Delete</button>` : ''}
+      </td>
+    </tr>`).join('');
+  } catch (e) {
+    document.getElementById('users-tbody').innerHTML = `<tr><td colspan="4" style="color:var(--red)">${esc(e.message)}</td></tr>`;
+  }
+}
+
+async function addUser() {
+  const username = document.getElementById('new-username').value.trim();
+  const password = document.getElementById('new-password').value;
+  const role     = document.getElementById('new-role').value;
+  const err      = document.getElementById('add-user-error');
+  err.classList.add('hidden');
+  if (!username || !password) { err.textContent = 'Username and password required'; err.classList.remove('hidden'); return; }
+  try {
+    await api('POST', '/api/users', { username, password, role });
+    document.getElementById('new-username').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('new-role').value     = 'user';
+    refreshUsersList();
+  } catch (e) { err.textContent = e.message; err.classList.remove('hidden'); }
+}
+
+async function deleteUser(id, username) {
+  if (!confirm(`Delete user "${username}"?`)) return;
+  try { await api('DELETE', `/api/users/${id}`); refreshUsersList(); }
+  catch (e) { alert(e.message); }
+}
+
+async function promptResetPassword(id, username) {
+  const pw = prompt(`New password for "${username}" (min 6 chars):`);
+  if (!pw) return;
+  try { await api('PATCH', `/api/users/${id}/password`, { newPassword: pw }); alert('Password updated.'); }
+  catch (e) { alert(e.message); }
+}
+
+// ── SSE ───────────────────────────────────────────────────────────────────────
+
+function connectSSE() {
+  if (sseSource) sseSource.close();
+  sseSource = new EventSource('/api/events');
+  sseSource.onmessage = e => { try { handleSSE(JSON.parse(e.data)); } catch {} };
+  sseSource.onerror   = () => {
+    document.getElementById('err-banner').classList.remove('hidden');
+    document.getElementById('err-msg').textContent = 'Connection lost — reconnecting…';
   };
 }
 
-function getProxies() {
-  const custom = (localStorage.getItem('customProxy') || '').trim();
-  if (!custom) return PROXY_LIST;
-  return [
-    { name: 'custom', wrap: url => `${custom}${encodeURIComponent(url)}`, unwrap: res => res.text() },
-    ...PROXY_LIST,
-  ];
+function handleSSE(msg) {
+  switch (msg.type) {
+    case 'scraping_started':
+      isScraping = true;
+      document.getElementById('refresh-btn').disabled = true;
+      document.getElementById('scan-banner').classList.remove('hidden');
+      document.getElementById('err-banner').classList.add('hidden');
+      document.getElementById('scan-msg').textContent = `Scanning venues… 0/${msg.total}`;
+      showSkeletons();
+      break;
+
+    case 'venue_loading':
+      venueData[msg.name] = { name: msg.name, url: (venueData[msg.name] || {}).url || '', overall: 'loading' };
+      renderAll();
+      break;
+
+    case 'venue_done': {
+      const r = msg.venue;
+      applyChanges(r);
+      venueData[r.name] = r;
+      const done = Object.values(venueData).filter(v => v.overall !== 'loading').length;
+      if (msg.total) document.getElementById('scan-msg').textContent = `Scanning venues… ${done}/${msg.total}`;
+      renderAll();
+      break;
+    }
+
+    case 'scrape_complete':
+      if (msg.data) {
+        Object.entries(msg.data).forEach(([name, r]) => { applyChanges(r); venueData[name] = r; });
+      }
+      if (msg.lastChecked) {
+        document.getElementById('ts').textContent =
+          new Date(msg.lastChecked).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      isScraping = false;
+      document.getElementById('refresh-btn').disabled = false;
+      document.getElementById('scan-banner').classList.add('hidden');
+      document.getElementById('err-banner').classList.add('hidden');
+      savePersistedPrev();
+      renderAll();
+      handleNotifications();
+      scheduleNext();
+      break;
+  }
+}
+
+// ── Trigger Refresh ───────────────────────────────────────────────────────────
+
+function triggerRefresh() {
+  if (isScraping) return;
+  api('POST', '/api/refresh').catch(e => {
+    document.getElementById('err-banner').classList.remove('hidden');
+    document.getElementById('err-msg').textContent = e.message;
+  });
+}
+
+// ── Catalogue ─────────────────────────────────────────────────────────────────
+
+async function loadCatalogue() {
+  document.getElementById('cat-body').innerHTML = '<div class="placeholder"><div class="spin dark lg"></div><p>Loading catalogue…</p></div>';
+  try {
+    catalogueData = await api('GET', `/api/catalogue${catQuery ? '?q=' + encodeURIComponent(catQuery) : ''}`);
+    document.getElementById('cat-count').textContent = `${catalogueData.length} artist${catalogueData.length !== 1 ? 's' : ''}`;
+    renderCatalogueList();
+  } catch (e) {
+    document.getElementById('cat-body').innerHTML = `<p style="padding:1rem;color:var(--red)">${esc(e.message)}</p>`;
+  }
+}
+
+function renderCatalogueList() {
+  if (!catalogueData.length) {
+    document.getElementById('cat-body').innerHTML = '<div class="placeholder"><p>No artists in catalogue yet. Run a scrape to populate.</p></div>';
+    return;
+  }
+  const q = catQuery.toLowerCase();
+  const highlight = s => q
+    ? esc(s).replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), m => `<mark>${m}</mark>`)
+    : esc(s);
+  const rows = catalogueData.map(a => `<tr class="cat-row" onclick="showArtistDetail('${esc(a.artist).replace(/'/g,"\\'")}')">
+    <td class="cat-artist">${highlight(a.artist)}</td>
+    <td class="cat-meta">${a.venue_count} venue${a.venue_count !== 1 ? 's' : ''}</td>
+    <td class="cat-date">${fmtDate(a.first_seen_at)}</td>
+    <td class="cat-date">${fmtDate(a.last_seen_at)}</td>
+    <td class="cat-dur">${durationLabel(a.first_seen_at, a.last_seen_at)}</td>
+    <td class="cat-scans">${a.total_scans}</td>
+  </tr>`).join('');
+  document.getElementById('cat-body').innerHTML = `<div class="cat-wrap">
+    <table class="cat-table">
+      <thead><tr><th>Artist</th><th>Venues</th><th>First Seen</th><th>Last Seen</th><th>Duration</th><th>Scans</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+async function showArtistDetail(artist) {
+  catSelectedArtist = artist;
+  document.getElementById('cat-body').innerHTML = '<div class="placeholder"><div class="spin dark lg"></div><p>Loading…</p></div>';
+  try {
+    const appearances = await api('GET', `/api/catalogue/artist/${encodeURIComponent(artist)}`);
+    renderArtistDetail(artist, appearances);
+  } catch (e) {
+    document.getElementById('cat-body').innerHTML = `<p style="padding:1rem;color:var(--red)">${esc(e.message)}</p>`;
+  }
+}
+
+function renderArtistDetail(artist, appearances) {
+  if (!appearances.length) {
+    document.getElementById('cat-body').innerHTML = `<button class="detail-back" onclick="backToCatalogue()">← Back</button><p>No data.</p>`;
+    return;
+  }
+  const first    = appearances.reduce((a, b) => a.first_seen_at < b.first_seen_at ? a : b).first_seen_at;
+  const last     = appearances.reduce((a, b) => a.last_seen_at  > b.last_seen_at  ? a : b).last_seen_at;
+  const maxScans = Math.max(...appearances.map(a => a.scan_count), 1);
+  const rows = appearances.map(a => {
+    const pct = Math.round((a.scan_count / maxScans) * 100);
+    return `<tr>
+      <td class="detail-venue"><a href="${esc(a.venue_url)}" target="_blank" rel="noopener">${esc(a.venue_name)}</a></td>
+      <td>${esc(a.date_str) || '—'}</td>
+      <td>${fmtDate(a.first_seen_at)}</td>
+      <td>${fmtDate(a.last_seen_at)}</td>
+      <td>${durationLabel(a.first_seen_at, a.last_seen_at)}</td>
+      <td>${a.scan_count}<div class="dur-bar"><div class="dur-fill" style="width:${pct}%"></div></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('cat-body').innerHTML = `
+    <button class="detail-back" onclick="backToCatalogue()">← Back to catalogue</button>
+    <div class="detail-hero">
+      <h2>${esc(artist)}</h2>
+      <div class="detail-hero-meta">
+        <span>First seen: <strong>${fmtDate(first)}</strong></span>
+        <span>Last seen: <strong>${fmtDate(last)}</strong></span>
+        <span>Duration: <strong>${durationLabel(first, last)}</strong></span>
+        <span>${appearances.length} venue record${appearances.length !== 1 ? 's' : ''}</span>
+      </div>
+    </div>
+    <div class="detail-wrap">
+      <table class="detail-table">
+        <thead><tr><th>Venue</th><th>Event Date</th><th>First Seen</th><th>Last Seen</th><th>Duration</th><th>Scans</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function backToCatalogue() { catSelectedArtist = null; renderCatalogueList(); }
+
+function durationLabel(from, to) {
+  if (!from || !to) return '—';
+  const days = Math.round((new Date(to) - new Date(from)) / 86400000);
+  if (days === 0) return '< 1d';
+  if (days < 7)   return `${days}d`;
+  if (days < 30)  return `${Math.round(days / 7)}w`;
+  if (days < 365) return `${Math.round(days / 30)}mo`;
+  return `${(days / 365).toFixed(1)}y`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+function loadSettings() {
+  return {
+    warnDays:        parseInt(localStorage.getItem('warnDays') || '7'),
+    refreshInterval: localStorage.getItem('refreshInterval') || '0',
+  };
 }
 
 function openSettings() {
   const s = loadSettings();
-  document.getElementById('slack-url').value         = s.slackUrl;
-  document.getElementById('webhook-url').value       = s.webhookUrl;
-  document.getElementById('custom-proxy').value      = s.customProxy;
-  document.getElementById('warn-days').value         = s.warnDays;
-  document.getElementById('refresh-interval').value  = s.refreshInterval;
+  document.getElementById('warn-days').value        = s.warnDays;
+  document.getElementById('refresh-interval').value = s.refreshInterval;
   document.getElementById('overlay').classList.remove('hidden');
 }
 
 function saveSettings() {
-  localStorage.setItem('slackUrl',        document.getElementById('slack-url').value.trim());
-  localStorage.setItem('webhookUrl',      document.getElementById('webhook-url').value.trim());
-  localStorage.setItem('customProxy',     document.getElementById('custom-proxy').value.trim());
   localStorage.setItem('refreshInterval', document.getElementById('refresh-interval').value);
   const d = parseInt(document.getElementById('warn-days').value) || 7;
   localStorage.setItem('warnDays', d);
@@ -604,7 +1091,7 @@ function saveSettings() {
 }
 
 function closeSettings() { document.getElementById('overlay').classList.add('hidden'); }
-function overlayClick(e) { if (e.target === document.getElementById('overlay')) closeSettings(); }
+function overlayClick(e) { if (e.target.id === 'overlay') closeSettings(); }
 
 // ── Date Parsing ─────────────────────────────────────────────────────────────
 
