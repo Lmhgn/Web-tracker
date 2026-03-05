@@ -1687,7 +1687,7 @@ function scheduleNext() {
                 mins === 60 ? 'Auto-refreshes every hour' :
                               `Auto-refreshes every ${mins / 60}h`;
   document.getElementById('footer-refresh-label').textContent = label;
-  if (mins > 0) refreshTimer = setTimeout(startScrape, mins * 60 * 1000);
+  if (mins > 0) refreshTimer = setTimeout(triggerRefresh, mins * 60 * 1000);
 }
 
 // ── View & Filter Controls ───────────────────────────────────────────────────
@@ -1724,11 +1724,9 @@ document.getElementById('grid').addEventListener('click', e => {
 
 // ── Init ───────────────────────────────────────────────────────────────────
 
-document.getElementById('proxy-label').textContent = 'Proxies: corsproxy.io, allorigins, codetabs';
 updateNotifBtn();
-scheduleNext();
 loadPersistedPrev();
-startScrape();
+initApp();
 </script>
 </body>
 </html>
