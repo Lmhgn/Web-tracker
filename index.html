@@ -774,6 +774,24 @@ async function initApp() {
   try {
     const user = await api('GET', '/api/auth/me');
     onAuthenticated(user);
+    // Load current state via HTTP so the page renders immediately,
+    // without waiting for the SSE stream to deliver its first event.
+    try {
+      const status = await api('GET', '/api/status');
+      if (status.venues) {
+        Object.entries(status.venues).forEach(([name, r]) => { venueData[name] = r; });
+      }
+      if (status.lastChecked) {
+        document.getElementById('ts').textContent =
+          new Date(status.lastChecked).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      if (status.isScraping) {
+        showSkeletons();
+      } else {
+        renderAll();
+        scheduleNext();
+      }
+    } catch {}
   } catch {
     showLogin();
     document.getElementById('login-username').focus();
@@ -791,6 +809,23 @@ async function doLogin() {
     const user = await api('POST', '/api/auth/login', { username, password });
     document.getElementById('login-error').classList.add('hidden');
     onAuthenticated(user);
+    // Load current state immediately via HTTP after login
+    try {
+      const status = await api('GET', '/api/status');
+      if (status.venues) {
+        Object.entries(status.venues).forEach(([name, r]) => { venueData[name] = r; });
+      }
+      if (status.lastChecked) {
+        document.getElementById('ts').textContent =
+          new Date(status.lastChecked).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      if (status.isScraping) {
+        showSkeletons();
+      } else {
+        renderAll();
+        scheduleNext();
+      }
+    } catch {}
   } catch (err) {
     const e = document.getElementById('login-error');
     e.textContent = err.message || 'Login failed';
