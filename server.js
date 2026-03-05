@@ -583,7 +583,7 @@ app.get('/api/events', requireAuth, (req, res) => {
 
   const ping = setInterval(() => {
     try { res.write(': ping\n\n'); } catch { clearInterval(ping); }
-  }, 25000);
+  }, 15000);
 
   req.on('close', () => {
     clearInterval(ping);

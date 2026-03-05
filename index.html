@@ -723,6 +723,8 @@
 
 let currentUser       = null;
 let sseSource         = null;
+let sseFailCount      = 0;
+let pollTimer         = null;
 let venueData         = {};
 let activeFilter      = 'all';
 let activeView        = 'cards';
@@ -941,12 +943,47 @@ async function promptResetPassword(id, username) {
 
 function connectSSE() {
   if (sseSource) sseSource.close();
+  clearInterval(pollTimer);
   sseSource = new EventSource('/api/events');
-  sseSource.onmessage = e => { try { handleSSE(JSON.parse(e.data)); } catch {} };
-  sseSource.onerror   = () => {
-    document.getElementById('err-banner').classList.remove('hidden');
-    document.getElementById('err-msg').textContent = 'Connection lost — reconnecting…';
+  sseSource.onmessage = e => {
+    sseFailCount = 0;
+    document.getElementById('err-banner').classList.add('hidden');
+    try { handleSSE(JSON.parse(e.data)); } catch {}
   };
+  sseSource.onerror = () => {
+    sseFailCount++;
+    if (sseFailCount >= 3) {
+      // SSE is not working on this host — fall back to polling
+      sseSource.close();
+      sseSource = null;
+      startPolling();
+    }
+    // Don't show an error banner immediately; EventSource retries on its own
+  };
+}
+
+function startPolling() {
+  if (pollTimer) return; // already polling
+  const INTERVAL = 20000; // 20 s
+  async function poll() {
+    try {
+      const status = await api('GET', '/api/status');
+      const wasNew = JSON.stringify(status.venues) !== JSON.stringify(venueData);
+      if (status.venues) Object.entries(status.venues).forEach(([n, r]) => { venueData[n] = r; });
+      if (status.lastChecked) {
+        document.getElementById('ts').textContent =
+          new Date(status.lastChecked).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      }
+      isScraping = !!status.isScraping;
+      if (wasNew || isScraping) renderAll();
+      document.getElementById('err-banner').classList.add('hidden');
+    } catch {
+      document.getElementById('err-banner').classList.remove('hidden');
+      document.getElementById('err-msg').textContent = 'Polling for updates — connection issues detected';
+    }
+  }
+  poll(); // immediate first poll
+  pollTimer = setInterval(poll, INTERVAL);
 }
 
 function handleSSE(msg) {
