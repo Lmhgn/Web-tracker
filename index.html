@@ -791,7 +791,12 @@ async function initApp() {
         renderAll();
         scheduleNext();
       }
-    } catch {}
+    } catch (e) {
+      // /api/status failed — still render so the grid doesn't stay on "Starting up..."
+      renderAll();
+      document.getElementById('err-banner').classList.remove('hidden');
+      document.getElementById('err-msg').textContent = 'Could not load status: ' + (e.message || e);
+    }
   } catch {
     showLogin();
     document.getElementById('login-username').focus();
@@ -825,7 +830,11 @@ async function doLogin() {
         renderAll();
         scheduleNext();
       }
-    } catch {}
+    } catch (e) {
+      renderAll();
+      document.getElementById('err-banner').classList.remove('hidden');
+      document.getElementById('err-msg').textContent = 'Could not load status: ' + (e.message || e);
+    }
   } catch (err) {
     const e = document.getElementById('login-error');
     e.textContent = err.message || 'Login failed';

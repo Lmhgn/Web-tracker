@@ -54,11 +54,58 @@ if (db.prepare('SELECT COUNT(*) AS n FROM users').get().n === 0) {
   console.log('\x1b[33m[SETUP] Please change this password after your first login.\x1b[0m');
 }
 
+// ── SQLite session store ──────────────────────────────────────────────────────
+// Persists sessions in SQLite so they survive process restarts on Railway.
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sessions (
+    sid        TEXT PRIMARY KEY,
+    data       TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+  );
+`);
+
+// Purge expired sessions on startup
+db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(Date.now());
+// Purge expired sessions every hour
+setInterval(() => {
+  db.prepare('DELETE FROM sessions WHERE expires_at < ?').run(Date.now());
+}, 3600 * 1000);
+
+const { EventEmitter } = require('events');
+
+class SQLiteStore extends EventEmitter {
+  constructor() { super(); this.ttl = 7 * 24 * 3600 * 1000; }
+  get(sid, cb) {
+    try {
+      const row = db.prepare('SELECT data, expires_at FROM sessions WHERE sid = ?').get(sid);
+      if (!row || row.expires_at < Date.now()) return cb(null, null);
+      cb(null, JSON.parse(row.data));
+    } catch (e) { cb(e); }
+  }
+  set(sid, session, cb) {
+    try {
+      const maxAge = (session.cookie && session.cookie.maxAge) ? session.cookie.maxAge : this.ttl;
+      const expires_at = Date.now() + maxAge;
+      db.prepare('INSERT OR REPLACE INTO sessions (sid, data, expires_at) VALUES (?, ?, ?)')
+        .run(sid, JSON.stringify(session), expires_at);
+      cb(null);
+    } catch (e) { cb(e); }
+  }
+  destroy(sid, cb) {
+    try { db.prepare('DELETE FROM sessions WHERE sid = ?').run(sid); cb(null); }
+    catch (e) { cb(e); }
+  }
+  touch(sid, session, cb) { this.set(sid, session, cb); }
+}
+
 // ── Express + session ────────────────────────────────────────────────────────
 
 const app = express();
+app.set('trust proxy', 1); // Railway terminates TLS at its edge proxy
 app.use(express.json({ limit: '2mb' }));
 app.use(session({
+  store:             new SQLiteStore(),
   secret:            process.env.SESSION_SECRET || 'venue-tracker-change-me-in-production',
   resave:            false,
   saveUninitialized: false,
