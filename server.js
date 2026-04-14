@@ -6,10 +6,18 @@ const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const fs = require('fs');
-const Database = require('better-sqlite3');
+
+let Database = null;
+try {
+  Database = require('better-sqlite3');
+} catch (err) {
+  console.warn('better-sqlite3 unavailable — catalogue tracking disabled:', err.message);
+}
 
 const app = express();
 app.use(express.json());
+// Serve root index.html explicitly so the public/ folder cannot shadow it
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Venue List ──────────────────────────────────────────────────────────────
@@ -39,26 +47,34 @@ const VENUES = [
 
 // ─── Catalogue Database ───────────────────────────────────────────────────────
 
-const DB_DIR = path.join(__dirname, 'db');
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
-
-const db = new Database(path.join(DB_DIR, 'catalogue.db'));
-db.exec(`
-  CREATE TABLE IF NOT EXISTS tile_history (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    venue_name  TEXT NOT NULL,
-    venue_url   TEXT NOT NULL,
-    artist      TEXT NOT NULL,
-    date_str    TEXT,
-    event_date  TEXT,
-    first_seen  TEXT NOT NULL,
-    last_seen   TEXT NOT NULL,
-    removed_at  TEXT,
-    entry_index INTEGER NOT NULL DEFAULT 0
-  );
-  CREATE INDEX IF NOT EXISTS idx_artist ON tile_history (artist);
-  CREATE INDEX IF NOT EXISTS idx_venue  ON tile_history (venue_name);
-`);
+let db = null;
+if (Database) {
+  try {
+    const DB_DIR = path.join(__dirname, 'db');
+    if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+    db = new Database(path.join(DB_DIR, 'catalogue.db'));
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS tile_history (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        venue_name  TEXT NOT NULL,
+        venue_url   TEXT NOT NULL,
+        artist      TEXT NOT NULL,
+        date_str    TEXT,
+        event_date  TEXT,
+        first_seen  TEXT NOT NULL,
+        last_seen   TEXT NOT NULL,
+        removed_at  TEXT,
+        entry_index INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE INDEX IF NOT EXISTS idx_artist ON tile_history (artist);
+      CREATE INDEX IF NOT EXISTS idx_venue  ON tile_history (venue_name);
+    `);
+    console.log('Catalogue database ready.');
+  } catch (err) {
+    console.error('Catalogue database failed to initialise:', err.message);
+    db = null;
+  }
+}
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -320,6 +336,7 @@ function broadcastSSE(payload) {
 // ─── Catalogue Tracking ───────────────────────────────────────────────────────
 
 function updateCatalogue(venueName, venueUrl, currentTiles) {
+  if (!db) return;
   const now = new Date().toISOString();
 
   // Prune removed entries older than 18 months
@@ -375,13 +392,18 @@ app.post('/api/refresh', async (req, res) => {
 app.get('/api/catalogue', (req, res) => {
   const q = (req.query.q || '').trim();
   if (q.length < 2) return res.json({ results: [], query: q });
-  const safe = q.replace(/[%_\\]/g, c => '\\' + c);
-  const entries = db.prepare(`
-    SELECT * FROM tile_history
-    WHERE artist LIKE ? ESCAPE '\\'
-    ORDER BY artist COLLATE NOCASE, venue_name, first_seen DESC
-  `).all(`%${safe}%`);
-  res.json({ results: entries, query: q });
+  if (!db) return res.json({ results: [], query: q, notice: 'Catalogue database unavailable' });
+  try {
+    const safe = q.replace(/[%_\\]/g, c => '\\' + c);
+    const entries = db.prepare(`
+      SELECT * FROM tile_history
+      WHERE artist LIKE ? ESCAPE '\\'
+      ORDER BY artist COLLATE NOCASE, venue_name, first_seen DESC
+    `).all(`%${safe}%`);
+    res.json({ results: entries, query: q });
+  } catch (err) {
+    res.json({ results: [], query: q, error: err.message });
+  }
 });
 
 // Server-Sent Events for real-time dashboard updates
