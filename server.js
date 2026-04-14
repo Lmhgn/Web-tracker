@@ -5,6 +5,8 @@ const cheerio = require('cheerio');
 const cron = require('node-cron');
 const nodemailer = require('nodemailer');
 const path = require('path');
+const fs = require('fs');
+const Database = require('better-sqlite3');
 
 const app = express();
 app.use(express.json());
@@ -34,6 +36,29 @@ const VENUES = [
   { name: 'O2 Victoria Warehouse Manchester',url: 'https://www.academymusicgroup.com/o2victoriawarehousemanchester',type: 'amg' },
   { name: 'Edinburgh Corn Exchange',         url: 'https://www.edinburghcornexchange.co.uk',                        type: 'ece' },
 ];
+
+// ─── Catalogue Database ───────────────────────────────────────────────────────
+
+const DB_DIR = path.join(__dirname, 'db');
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+
+const db = new Database(path.join(DB_DIR, 'catalogue.db'));
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tile_history (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    venue_name  TEXT NOT NULL,
+    venue_url   TEXT NOT NULL,
+    artist      TEXT NOT NULL,
+    date_str    TEXT,
+    event_date  TEXT,
+    first_seen  TEXT NOT NULL,
+    last_seen   TEXT NOT NULL,
+    removed_at  TEXT,
+    entry_index INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_artist ON tile_history (artist);
+  CREATE INDEX IF NOT EXISTS idx_venue  ON tile_history (venue_name);
+`);
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -176,6 +201,13 @@ async function scrapeAll() {
   lastChecked = new Date().toISOString();
   isScraping = false;
 
+  // Update catalogue history for all successfully scraped venues
+  results.forEach(result => {
+    if (result.tiles && result.overallStatus !== 'error') {
+      updateCatalogue(result.name, result.url, result.tiles);
+    }
+  });
+
   broadcastSSE({ type: 'update', data: venueData, lastChecked });
 
   if (newlyOutdated.length > 0) {
@@ -285,6 +317,50 @@ function broadcastSSE(payload) {
   });
 }
 
+// ─── Catalogue Tracking ───────────────────────────────────────────────────────
+
+function updateCatalogue(venueName, venueUrl, currentTiles) {
+  const now = new Date().toISOString();
+
+  // Prune removed entries older than 18 months
+  const cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - 18);
+  db.prepare(`DELETE FROM tile_history WHERE removed_at IS NOT NULL AND removed_at < ?`).run(cutoff.toISOString());
+
+  const activeEntries = db.prepare(
+    `SELECT * FROM tile_history WHERE venue_name = ? AND removed_at IS NULL`
+  ).all(venueName);
+
+  const currentKeys = new Set(currentTiles.map(t => `${t.artist}||${t.dateStr || ''}`));
+  const activeKeys  = new Set(activeEntries.map(e => `${e.artist}||${e.date_str || ''}`));
+
+  const updateLastSeen = db.prepare(`UPDATE tile_history SET last_seen = ? WHERE id = ?`);
+  const markRemoved    = db.prepare(`UPDATE tile_history SET removed_at = ?, last_seen = ? WHERE id = ?`);
+  const countArtist    = db.prepare(`SELECT COUNT(*) AS cnt FROM tile_history WHERE venue_name = ? AND artist = ?`);
+  const insertEntry    = db.prepare(`
+    INSERT INTO tile_history (venue_name, venue_url, artist, date_str, event_date, first_seen, last_seen, entry_index)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  db.transaction(() => {
+    for (const entry of activeEntries) {
+      const key = `${entry.artist}||${entry.date_str || ''}`;
+      if (currentKeys.has(key)) {
+        updateLastSeen.run(now, entry.id);
+      } else {
+        markRemoved.run(now, now, entry.id);
+      }
+    }
+    for (const tile of currentTiles) {
+      const key = `${tile.artist}||${tile.dateStr || ''}`;
+      if (!activeKeys.has(key)) {
+        const idx = countArtist.get(venueName, tile.artist).cnt;
+        insertEntry.run(venueName, venueUrl, tile.artist, tile.dateStr || null, tile.date || null, now, now, idx);
+      }
+    }
+  })();
+}
+
 // ─── API Routes ───────────────────────────────────────────────────────────────
 
 app.get('/api/status', (req, res) => {
@@ -294,6 +370,18 @@ app.get('/api/status', (req, res) => {
 app.post('/api/refresh', async (req, res) => {
   res.json({ message: 'Scrape started' });
   scrapeAll();
+});
+
+app.get('/api/catalogue', (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (q.length < 2) return res.json({ results: [], query: q });
+  const safe = q.replace(/[%_\\]/g, c => '\\' + c);
+  const entries = db.prepare(`
+    SELECT * FROM tile_history
+    WHERE artist LIKE ? ESCAPE '\\'
+    ORDER BY artist COLLATE NOCASE, venue_name, first_seen DESC
+  `).all(`%${safe}%`);
+  res.json({ results: entries, query: q });
 });
 
 // Server-Sent Events for real-time dashboard updates

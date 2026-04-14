@@ -358,6 +358,85 @@
       .header-right { width: 100%; justify-content: flex-end; }
       .search-wrap { max-width: 100%; width: 100%; }
     }
+
+    /* ── Catalogue View ────────────────────────────────────────────────── */
+    #catalogue-view { padding: 1.5rem 1.75rem 2.5rem; flex: 1; }
+
+    .cat-header { max-width: 680px; margin-bottom: 1.75rem; }
+
+    .cat-search-wrap { position: relative; margin-bottom: 0.55rem; }
+    .cat-search-wrap svg {
+      position: absolute; left: 0.85rem; top: 50%;
+      transform: translateY(-50%); color: var(--text-muted); pointer-events: none;
+    }
+    .cat-search-input {
+      width: 100%; padding: 0.7rem 1rem 0.7rem 2.6rem;
+      border: 2px solid var(--border); border-radius: 10px;
+      font-size: 0.92rem; outline: none; transition: border-color .15s;
+      background: var(--surface); color: var(--text);
+    }
+    .cat-search-input:focus { border-color: #3b82f6; }
+
+    .cat-hint { font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; }
+
+    .cat-empty, .cat-no-results {
+      padding: 3.5rem 2rem; text-align: center;
+      color: var(--text-muted); font-size: 0.88rem;
+    }
+    .cat-no-results {
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .cat-no-results strong { color: var(--text); }
+    .cat-no-results .cat-sub { font-size: 0.78rem; margin-top: 0.5rem; }
+
+    .cat-loading { padding: 3rem; display: flex; justify-content: center; }
+
+    .cat-group { margin-bottom: 2.25rem; }
+
+    .cat-artist-name {
+      font-size: 1rem; font-weight: 700;
+      padding-bottom: 0.45rem; margin-bottom: 0.6rem;
+      border-bottom: 2px solid var(--border); color: var(--text);
+    }
+
+    .cat-table {
+      width: 100%; border-collapse: collapse; font-size: 0.82rem;
+      background: var(--surface); border-radius: var(--radius);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    .cat-table th {
+      text-align: left; font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+      padding: 0.65rem 0.9rem; border-bottom: 2px solid var(--border);
+      background: var(--gray-light); white-space: nowrap;
+    }
+    .cat-row { border-bottom: 1px solid var(--border); transition: background .1s; }
+    .cat-row:last-child { border-bottom: none; }
+    .cat-row:hover { background: #f8fafc; }
+    .cat-row td { padding: 0.55rem 0.9rem; vertical-align: middle; }
+    .cat-row a { color: var(--blue); text-decoration: none; font-weight: 500; }
+    .cat-row a:hover { text-decoration: underline; }
+    .cat-row.cat-live td:first-child { border-left: 3px solid var(--green); }
+
+    .cat-badge-live {
+      display: inline-block; font-size: 0.65rem; font-weight: 700;
+      padding: 0.15rem 0.5rem; border-radius: 20px;
+      background: var(--green-light); color: var(--green);
+      border: 1px solid var(--green-border); white-space: nowrap;
+    }
+    .cat-duration { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
+    .cat-entry-badge {
+      font-size: 0.62rem; font-weight: 700; padding: 0.1rem 0.38rem;
+      border-radius: 4px; background: var(--blue-light); color: var(--blue);
+      border: 1px solid var(--blue-border); margin-left: 0.4rem; vertical-align: middle;
+    }
+
+    @media (max-width: 580px) {
+      #catalogue-view { padding: 1rem; }
+      .cat-table { font-size: 0.75rem; }
+      .cat-table th, .cat-row td { padding: 0.45rem 0.6rem; }
+    }
   </style>
 </head>
 <body>
@@ -428,6 +507,7 @@
   <div class="view-tabs">
     <button class="view-tab active" data-v="cards">Cards</button>
     <button class="view-tab" data-v="events">Events</button>
+    <button class="view-tab" data-v="catalogue">Catalogue</button>
   </div>
 </div>
 
@@ -439,6 +519,22 @@
 <!-- ── Event List ──────────────────────────────────────────────────── -->
 <div id="event-list" class="hidden">
   <div class="placeholder"><div class="spin dark lg"></div><p>Loading…</p></div>
+</div>
+
+<!-- ── Catalogue View ──────────────────────────────────────────────── -->
+<div id="catalogue-view" class="hidden">
+  <div class="cat-header">
+    <div class="cat-search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" id="cat-search" class="cat-search-input" placeholder="Search artist or event name…" autocomplete="off" />
+    </div>
+    <p class="cat-hint">Search for an artist or show to see every venue it appeared on and how long it was live. History spans up to 18 months and is built from the server's hourly scrape.</p>
+  </div>
+  <div id="cat-results">
+    <div class="cat-empty">
+      <p>Type an artist or event name above to search the carousel history.</p>
+    </div>
+  </div>
 </div>
 
 <!-- ── Settings Modal ────────────────────────────────────────────── -->
@@ -908,10 +1004,16 @@ function renderAll() {
   if (activeView === 'events') {
     document.getElementById('grid').classList.add('hidden');
     document.getElementById('event-list').classList.remove('hidden');
+    document.getElementById('catalogue-view').classList.add('hidden');
     renderEvents();
+  } else if (activeView === 'catalogue') {
+    document.getElementById('grid').classList.add('hidden');
+    document.getElementById('event-list').classList.add('hidden');
+    document.getElementById('catalogue-view').classList.remove('hidden');
   } else {
     document.getElementById('grid').classList.remove('hidden');
     document.getElementById('event-list').classList.add('hidden');
+    document.getElementById('catalogue-view').classList.add('hidden');
     renderCards();
   }
   updateScanAges();
@@ -1208,6 +1310,9 @@ function scheduleNext() {
 function setView(view) {
   activeView = view;
   document.querySelectorAll('.view-tab').forEach(b => b.classList.toggle('active', b.dataset.v === view));
+  const isCat = view === 'catalogue';
+  document.querySelector('.filt-group').classList.toggle('hidden', isCat);
+  document.querySelector('.search-wrap').classList.toggle('hidden', isCat);
   renderAll();
 }
 
@@ -1235,12 +1340,116 @@ document.getElementById('grid').addEventListener('click', e => {
   if (btn) scrapeOne(btn.dataset.refreshVenue);
 });
 
+// ── Catalogue ─────────────────────────────────────────────────────────────────
+
+let catTimer = null;
+
+function initCatalogue() {
+  document.getElementById('cat-search').addEventListener('input', e => {
+    const q = e.target.value.trim();
+    clearTimeout(catTimer);
+    if (q.length < 2) {
+      document.getElementById('cat-results').innerHTML =
+        '<div class="cat-empty"><p>Type an artist or event name above to search the carousel history.</p></div>';
+      return;
+    }
+    catTimer = setTimeout(() => fetchCatalogue(q), 350);
+  });
+}
+
+async function fetchCatalogue(q) {
+  const container = document.getElementById('cat-results');
+  container.innerHTML = '<div class="cat-loading"><div class="spin dark"></div></div>';
+  try {
+    const res  = await fetch(`/api/catalogue?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+    renderCatalogueResults(data.results, q);
+  } catch (err) {
+    container.innerHTML = `<div class="cat-empty"><p>Failed to load catalogue: ${esc(err.message)}</p></div>`;
+  }
+}
+
+function renderCatalogueResults(entries, q) {
+  const container = document.getElementById('cat-results');
+  if (!entries.length) {
+    container.innerHTML = `<div class="cat-no-results">
+      <p>No results for <strong>${esc(q)}</strong>.</p>
+      <p class="cat-sub">The catalogue builds up over time from the server's hourly scrape — try a broader search term.</p>
+    </div>`;
+    return;
+  }
+
+  // Group by normalised artist name, preserving original casing of first match
+  const groups = new Map();
+  entries.forEach(e => {
+    const key = e.artist.toLowerCase();
+    if (!groups.has(key)) groups.set(key, { artist: e.artist, entries: [] });
+    groups.get(key).entries.push(e);
+  });
+
+  let html = '';
+  for (const group of groups.values()) html += buildCatalogueGroup(group);
+  container.innerHTML = html;
+}
+
+function buildCatalogueGroup({ artist, entries }) {
+  const rows = entries.map(e => {
+    const firstSeen = fmtCatDate(e.first_seen);
+    const removedAt = e.removed_at ? fmtCatDate(e.removed_at) : null;
+    const dur       = catDuration(e.first_seen, e.removed_at);
+    const isLive    = !e.removed_at;
+    const entryBadge = e.entry_index > 0
+      ? `<span class="cat-entry-badge">Appearance #${e.entry_index + 1}</span>`
+      : '';
+    return `<tr class="cat-row${isLive ? ' cat-live' : ''}">
+      <td><a href="${esc(e.venue_url)}" target="_blank" rel="noopener">${esc(e.venue_name)}</a>${entryBadge}</td>
+      <td>${esc(e.date_str || '—')}</td>
+      <td>${firstSeen}</td>
+      <td>${isLive ? '<span class="cat-badge-live">Currently live</span>' : removedAt}</td>
+      <td class="cat-duration">${dur}${isLive ? ' so far' : ''}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="cat-group">
+    <h3 class="cat-artist-name">${esc(artist)}</h3>
+    <div style="overflow-x:auto">
+      <table class="cat-table">
+        <thead><tr>
+          <th>Venue</th>
+          <th>Event Date</th>
+          <th>Added to Carousel</th>
+          <th>Removed</th>
+          <th>Duration</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function fmtCatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function catDuration(firstSeen, removedAt) {
+  const days = Math.round((new Date(removedAt || Date.now()) - new Date(firstSeen)) / 86400000);
+  if (days === 0) return '< 1 day';
+  if (days === 1) return '1 day';
+  if (days < 7)  return `${days} days`;
+  const weeks = Math.round(days / 7);
+  if (weeks < 9) return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+  const months = Math.round(days / 30.5);
+  return `${months} month${months !== 1 ? 's' : ''}`;
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 
 document.getElementById('proxy-label').textContent = 'Proxies: corsproxy.io, allorigins, codetabs';
 updateNotifBtn();
 scheduleNext();
 loadPersistedPrev();
+initCatalogue();
 startScrape();
 </script>
 </body>
